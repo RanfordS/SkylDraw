@@ -1,0 +1,4 @@
+doc/**
+objs/**
+vec.c
+vec.h

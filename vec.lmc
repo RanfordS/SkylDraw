@@ -1,0 +1,533 @@
+#include "vec.h"
+
+//! @file vec.c
+//! @author Alexander J. Johnson
+//! @brief Provides multiple vector and matrix types.
+
+/*:: Common
+local res = ""
+for i = 2, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+// Vector _N_
+//:{
+#define _N_ 4
+
+typedef struct
+{   float v[_N_];
+} vec_N_;
+//:}
+vec_N_ vec_N_add (vec_N_ a, vec_N_ b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] + b.v[i];
+    }
+    return c;
+}
+
+vec_N_ vec_N_sub (vec_N_ a, vec_N_ b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] - b.v[i];
+    }
+    return c;
+}
+
+vec_N_ vec_N_mul (vec_N_ a, vec_N_ b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] * b.v[i];
+    }
+    return c;
+}
+
+vec_N_ vec_N_div (vec_N_ a, vec_N_ b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] / b.v[i];
+    }
+    return c;
+}
+
+vec_N_ vec_N_unm (vec_N_ a)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = -a.v[i];
+    }
+    return c;
+}
+
+float vec_N_sum (vec_N_ a)
+{   float r = 0;
+    for (int i = 0; i < _N_; ++i)
+    {   r += a.v[i];
+    }
+    return r;
+}
+
+float vec_N_dot (vec_N_ a, vec_N_ b)
+{   float r = 0;
+    for (int i = 0; i < _N_; ++i)
+    {   r += a.v[i]*b.v[i];
+    }
+    return r;
+}
+
+float vec_N_mag2 (vec_N_ a)
+{   float r = 0;
+    for (int i = 0; i < _N_; ++i)
+    {   r += a.v[i]*a.v[i];
+    }
+    return r;
+}
+
+float vec_N_mag (vec_N_ a)
+{   return sqrtf (vec_N_mag2 (a));
+}
+
+vec_N_ vec_N_scalaradd (vec_N_ a, float b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] + b;
+    }
+    return c;
+}
+
+vec_N_ vec_N_scalarsub (vec_N_ a, float b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] - b;
+    }
+    return c;
+}
+
+vec_N_ vec_N_scalarmul (vec_N_ a, float b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] * b;
+    }
+    return c;
+}
+
+vec_N_ vec_N_scalardiv (vec_N_ a, float b)
+{   vec_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   c.v[i] = a.v[i] / b;
+    }
+    return c;
+}
+
+vec_N_ vec_N_norm (vec_N_ a)
+{   return vec_N_scalardiv (a, vec_N_mag (a));
+}
+
+vec_N_ vec_N_norms (vec_N_ a, float b)
+{   return vec_N_scalarmul (a, b/vec_N_mag (a));
+}
+
+void vec_N_disp (vec_N_ a, const char* form)
+{   printf ("[");
+    for (int i = 0; i < _N_; ++i)
+    {   printf (form, a.v[i]);
+    }
+    printf ("]\n");
+}
+
+
+
+// Matrix _N_
+//:{
+typedef struct
+{   float m[_N_*_N_];
+} mat_N_;
+
+#define M_N_ID(M,r,c) M.m[_N_*(r)+(c)]
+//:}
+mat_N_ mat_N_add (mat_N_ a, mat_N_ b)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] + b.m[i];
+    }
+    return c;
+}
+
+mat_N_ mat_N_sub (mat_N_ a, mat_N_ b)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] - b.m[i];
+    }
+    return c;
+}
+
+mat_N_ mat_N_compmul (mat_N_ a, mat_N_ b)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] * b.m[i];
+    }
+    return c;
+}
+
+mat_N_ mat_N_compdiv (mat_N_ a, mat_N_ b)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] / b.m[i];
+    }
+    return c;
+}
+
+mat_N_ mat_N_unm
+(   mat_N_ a
+)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = -a.m[i];
+    }
+    return c;
+}
+
+mat_N_ mat_N_mul (mat_N_ a, mat_N_ b)
+{   mat_N_ c = {};
+    for (int i = 0; i < _N_; ++i)
+    {   for (int j = 0; j < _N_; ++j)
+        {   for (int k = 0; k < _N_; ++k)
+            {   M_N_ID(c,j,k) += M_N_ID(a,j,i)*M_N_ID(b,i,k);
+            }
+        }
+    }
+    return c;
+}
+
+mat_N_ mat_N_multranspose (mat_N_ a, mat_N_ b)
+{   mat_N_ c = {};
+    for (int i = 0; i < _N_; ++i)
+    {   for (int j = 0; j < _N_; ++j)
+        {   for (int k = 0; k < _N_; ++k)
+            {   M_N_ID(c,k,j) += M_N_ID(a,j,i)*M_N_ID(b,i,k);
+            }
+        }
+    }
+    return c;
+}
+
+mat_N_ mat_N_scalaradd (mat_N_ a, float b)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] + b;
+    }
+    return c;
+}
+
+mat_N_ mat_N_scalarsub (mat_N_ a, float b)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] - b;
+    }
+    return c;
+}
+
+mat_N_ mat_N_scalarmul (mat_N_ a, float b)
+{    mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] * b;
+    }
+    return c;
+}
+
+mat_N_ mat_N_scalardiv (mat_N_ a, float b)
+{   mat_N_ c;
+    for (int i = 0; i < _N_*_N_; ++i)
+    {   c.m[i] = a.m[i] / b;
+    }
+    return c;
+}
+
+
+
+vec_N_ mat_N_getrow (mat_N_ a, int r)
+{   vec_N_ v;
+    for (int i = 0; i < _N_; ++i)
+    {   v.v[i] = M_N_ID(a,r,i);
+    }
+    return v;
+}
+
+vec_N_ mat_N_getcol (mat_N_ a, int c)
+{   vec_N_ v;
+    for (int i = 0; i < _N_; ++i)
+    {   v.v[i] = M_N_ID(a,i,c);
+    }
+    return v;
+}
+
+mat_N_ mat_N_setrow (mat_N_ a, int r, vec_N_ v)
+{   for (int i = 0; i < _N_; ++i)
+    {   M_N_ID(a,r,i) = v.v[i];
+    }
+    return a;
+}
+
+mat_N_ mat_N_setcol (mat_N_ a, int c, vec_N_ v)
+{   for (int i = 0; i < _N_; ++i)
+    {   M_N_ID(a,i,c) = v.v[i];
+    }
+    return a;
+}
+
+mat_N_ mat_N_transpose (mat_N_ a)
+{   mat_N_ b;
+    for (int i = 0; i < _N_; ++i)
+    {   for (int j = 0; j < _N_; ++j)
+        {   M_N_ID(b,j,i) = M_N_ID(a,i,j);
+        }
+    }
+    return b;
+}
+
+void mat_N_disp (mat_N_ a, const char* form)
+{   for (int i = 0; i < _N_; ++i)
+    {   printf ("[");
+        for (int j = 0; j < _N_; ++j)
+        {   printf (form, M_N_ID(a,i,j));
+        }
+        printf ("]\n");
+    }
+}
+
+
+
+//:: End of Common Macro
+
+vec2 vec2perp (vec2 a)
+{   vec2 b = {.v = {-a.v[1], a.v[0]}};
+    return b;
+}
+
+float vec2side (vec2 a, vec2 b, vec2 c)
+{   vec2 ab = vec2sub (b, a);
+    vec2 bc = vec2sub (c, b);
+    return vec2dot (vec2perp (ab), bc);
+}
+
+float vec2angularmass (vec2 a, vec2 b)
+{   // point of closest origin approach, on the line through a and b
+    vec2 diff = vec2sub (b, a);
+    float scale = vec2dot (diff, a) / vec2dot (diff, diff);
+    vec2 c = vec2sub (a, vec2scalarmul (diff, scale));
+    // integration limits
+    float theta_c = atan2 (c.v[1], c.v[0]);
+    float theta_0 = atan2 (a.v[1], a.v[0]) - theta_c;
+    float theta_1 = atan2 (b.v[1], b.v[0]) - theta_c;
+    // integration
+    float c0 = cos (theta_0);
+    float c1 = cos (theta_1);
+    c0 = tan (theta_0)*(2.0f + 1.0f/(c0*c0));
+    c1 = tan (theta_1)*(2.0f + 1.0f/(c1*c1));
+    return vec2dot (c, c)*(c1 - c0) / 12.0f;
+}
+
+float mat2det (mat2 a)
+{   return a.m[0]*a.m[3] - a.m[1]*a.m[2];
+}
+
+mat2 mat2inv (mat2 a)
+{   float det = mat2det (a);
+    mat2 b;
+    b.m[0] =  a.m[3]/det; b.m[1] = -a.m[1]/det;
+    b.m[2] = -a.m[2]/det; b.m[3] =  a.m[0]/det;
+    return b;
+}
+
+vec3 vec3cross (vec3 a, vec3 b)
+{   float x = a.v[1]*b.v[2] - b.v[1]*a.v[2];
+    float y = a.v[2]*b.v[0] - b.v[2]*a.v[0];
+    float z = a.v[0]*b.v[1] - b.v[0]*a.v[1];
+    vec3 c = {.v = {x, y, z}};
+    return c;
+}
+
+mat3 mat3rotation (float a)
+{   mat3 b = {};
+    float c = cosf (a);
+    float s = sinf (a);
+    M3ID(b,0,0) = c; M3ID(b,0,1) =-s;
+    M3ID(b,1,0) = s; M3ID(b,1,1) = c;
+    return b;
+}
+
+mat4 mat4rotation (float a, int i)
+{   // ordered plane axis
+    int j = (i + 1)%3;
+    int k = (i + 2)%3;
+    // sin and cos
+    float c = cosf (a);
+    float s = sinf (a);
+    // assign and return
+    mat4 b = {};
+    M4ID(b,i,i) = 1;
+    M4ID(b,j,j) = c;
+    M4ID(b,k,k) = c;
+    M4ID(b,3,3) = 1;
+    M4ID(b,k,j) = s;
+    M4ID(b,j,k) =-s;
+    return b;
+}
+
+
+/*:: Semi-common
+local res = ""
+for i = 3, 4 do
+  res = res .. source:gsub ("_M_", tostring (i-1))
+                     :gsub ("_N_", tostring (i))
+end
+return res
+::*/
+// _M_ <-> _N_
+//:{
+#define _M_ 3
+
+typedef struct
+{   float v[_M_];
+} vec_M_;
+
+typedef struct
+{   float m[_M_*_M_];
+} mat_M_;
+
+#define M_M_ID(M,r,c) M.m[_M_*(r)+(c)]
+//:}
+vec_N_ vec_M_raise (vec_M_ a, int i, float b)
+{   vec_N_ c;
+    c.v[i] = b;
+    for (int j = 0; j < _M_; ++j)
+    {   c.v[j + (i <= j)] = a.v[j];
+    }
+    return c;
+}
+
+vec_N_ vec_M_homogeneous (vec_M_ a)
+{   vec_N_ b;
+    for (int i = 0; i < _M_; ++i)
+    {   b.v[i] = a.v[i];
+    }
+    b.v[_M_] = 1;
+    return b;
+}
+
+vec_M_ vec_N_drop (vec_N_ a, int i)
+{   vec_M_ b;
+    for (int j = 0; j < i; ++j)
+    {   b.v[j] = a.v[j];
+    }
+    for (int j = i; j < _M_; ++j)
+    {   b.v[j] = a.v[j+1];
+    }
+    return b;
+}
+
+mat_N_ mat_M_homogeneous (mat_M_ a)
+{   mat_N_ b = {};
+    for (int i = 0; i < _M_; ++i)
+    {   for (int j = 0; j < _M_; ++j)
+        {   M_N_ID(b,i,j) = M_M_ID(a,i,j);
+        }
+    }
+    M_N_ID(b,_M_,_M_) = 1;
+    return b;
+}
+
+mat_M_ mat_N_drop (mat_N_ a, int r, int c)
+{   mat_M_ b;
+    for (int i = 0; i < _M_; ++i)
+    {   int I = i + (r <= i);
+        for (int j = 0; j < _M_; ++j)
+        {   int J = j + (c <= j);
+            M_M_ID(b,i,j) = M_N_ID(a,I,J);
+        }
+    }
+    return b;
+}
+
+mat_N_ mat_N_translation (vec_M_ a)
+{   mat_N_ b = {};
+    for (int i = 0; i < _N_; ++i)
+    {   M_N_ID(b,i,i) = 1;
+    }
+    for (int i = 0; i < _M_; ++i)
+    {   M_N_ID(b,i,_M_) = a.v[i];
+    }
+    return b;
+}
+
+mat_N_ mat_N_scale (vec_M_ a)
+{   mat_N_ b = {};
+    for (int i = 0; i < _M_; ++i)
+    {   M_N_ID(b,i,i) = a.v[i];
+    }
+    M_N_ID(b,_M_,_M_) = 1;
+    return b;
+}
+
+mat_N_ mat_N_scale_uniform (float a)
+{   mat_N_ b = {};
+    for (int i = 0; i < _M_; ++i)
+    {   M_N_ID(b,i,i) = a;
+    }
+    M_N_ID(b,_M_,_M_) = 1;
+    return b;
+}
+
+//:{
+float mat_M_det (mat_M_ a);
+//:}
+float mat_N_det (mat_N_ a)
+{   float b = 0;
+    for (int i = _N_; i--;)
+    {   b = mat_M_det (mat_N_drop (a, i, 0))*M_N_ID(a,i,0) - b;
+    }
+    return b;
+}
+
+mat_N_ mat_N_cofact (mat_N_ a)
+{   mat_N_ b;
+    for (int i = 0; i < _N_; ++i)
+    {   for (int j = 0; j < _N_; ++j)
+        {   float s = (i^j)&1 ? -1.0f : 1.0f;
+            M_N_ID(b,i,j) = mat_M_det (mat_N_drop (a, i, j))*s;
+        }
+    }
+    return b;
+}
+
+mat_N_ mat_N_adj (mat_N_ a)
+{   mat_N_ b;
+    for (int i = 0; i < _N_; ++i)
+    {   for (int j = 0; j < _N_; ++j)
+        {   float s = (i^j)&1 ? -1.0f : 1.0f;
+            M_N_ID(b,j,i) = mat_M_det (mat_N_drop (a, i, j))*s;
+        }
+    }
+    return b;
+}
+
+mat_N_ mat_N_inv (mat_N_ a)
+{   mat_N_ b = mat_N_cofact (a);
+    float det = 0;
+    for (int i = 0; i < _N_; ++i)
+    {   det += a.m[i]*b.m[i];
+    }
+    mat_N_ c;
+    for (int i = 0; i < _N_; ++i)
+    {   for (int j = 0; j < _N_; ++j)
+        {   M_N_ID(c,j,i) = M_N_ID(b,i,j)/det;
+        }
+    }
+    return c;
+}
+
+
+
+//:: End of Semi-Common Macro
+
+// End of File

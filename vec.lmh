@@ -1,0 +1,217 @@
+#pragma once
+#include <math.h>
+#include <stdio.h>
+
+//! @file vec.h
+//! @author Alexander J. Johnson
+//! @brief Provides multiple vector and matrix types.
+
+
+
+/*:: Common
+local res = ""
+for i = 2, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+// Vector _N_
+//:{
+#define _N_ 4
+//:}
+//! _N_ component vector type.
+typedef struct
+{   float v[_N_]; //!< Data storage element.
+}   vec_N_;
+
+//! Component-wise addition of two, _N_ component vectors.
+extern vec_N_ vec_N_add (vec_N_ a, vec_N_ b);
+//! Component-wise subtraction of two, _N_ component vectors.
+extern vec_N_ vec_N_sub (vec_N_ a, vec_N_ b);
+//! Component-wise multiplication of two, _N_ component vectors.
+extern vec_N_ vec_N_mul (vec_N_ a, vec_N_ b);
+//! Component-wise division of two, _N_ component vectors.
+extern vec_N_ vec_N_div (vec_N_ a, vec_N_ b);
+//! Unary minus of a _N_ component vector.
+extern vec_N_ vec_N_unm (vec_N_ a);
+//! Component sum of a _N_ component vector.
+extern float vec_N_sum (vec_N_ a);
+//! Dot product of two, _N_ component vectors.
+extern float vec_N_dot (vec_N_ a, vec_N_ b);
+//! Magnitude squared of a _N_ component vector.
+extern float vec_N_mag2 (vec_N_ a);
+//! Magnitude of a _N_ component vector.
+extern float vec_N_mag (vec_N_ a);
+//! Multiplication of a _N_ component vector by a scalar.
+extern vec_N_ vec_N_scalaradd (vec_N_ a, float b);
+//! Multiplication of a _N_ component vector by a scalar.
+extern vec_N_ vec_N_scalarsub (vec_N_ a, float b);
+//! Multiplication of a _N_ component vector by a scalar.
+extern vec_N_ vec_N_scalarmul (vec_N_ a, float b);
+//! Multiplication of a _N_ component vector by a scalar.
+extern vec_N_ vec_N_scalardiv (vec_N_ a, float b);
+//! Normalised _N_ component vector with unit length.
+extern vec_N_ vec_N_norm (vec_N_ a);
+//! Normalised _N_ component vector with specified length.
+extern vec_N_ vec_N_norms (vec_N_ a, float b);
+//! Prints a _N_ component vector using the specified format.
+extern void vec_N_disp
+(   vec_N_ a //!< Vector to display.
+,   const char* form //!< Format to use for each component.
+);
+
+
+
+// Matrix _N_
+
+//! _N_x_N_ matrix type.
+typedef struct
+{   float m[_N_*_N_]; //!< Data storage element.
+}   mat_N_;
+
+//! Returns the element of _N_x_N_ matrix M
+//! corresponding to the r-th row and c-th column.
+#define M_N_ID(M,r,c) M.m[_N_*(r)+(c)]
+
+//! Matrix product.
+extern mat_N_ mat_N_add (mat_N_ a, mat_N_ b);
+//! Component-wise subtraction of two, _N_x_N_ matrices.
+extern mat_N_ mat_N_sub (mat_N_ a, mat_N_ b);
+//! Component-wise multiplication of two, _N_x_N_ matrices.
+extern mat_N_ mat_N_compmul (mat_N_ a, mat_N_ b);
+//! Component-wise division of two, _N_x_N_ matrices.
+extern mat_N_ mat_N_compdiv (mat_N_ a, mat_N_ b);
+//! Component-wise addition of two, _N_x_N_ matrices.
+extern mat_N_ mat_N_unm (mat_N_ a);
+//! Unary minus of a _N_x_N_ matrix.
+extern mat_N_ mat_N_mul (mat_N_ a, mat_N_ b);
+//! Transpose of a matrix product.
+extern mat_N_ mat_N_multranspose (mat_N_ a, mat_N_ b);
+//! Adds a scalar each component of a _N_x_N_ matrix.
+extern mat_N_ mat_N_scalaradd (mat_N_ a, float b);
+//! Subtracts a scalar each component of a _N_x_N_ matrix.
+extern mat_N_ mat_N_scalarsub (mat_N_ a, float b);
+//! Multiplies each component of a _N_x_N_ matrix by a scalar.
+extern mat_N_ mat_N_scalarmul (mat_N_ a, float b);
+//! Divides each component of a _N_x_N_ matrix by a scalar.
+extern mat_N_ mat_N_scalardiv (mat_N_ a, float b);
+//! Gets the r-th row of a _N_x_N_ matrix as a _N_ component vector.
+extern vec_N_ mat_N_getrow (mat_N_ a, int r);
+//! Gets the c-th column of a _N_x_N_ matrix as a _N_ component vector.
+extern vec_N_ mat_N_getcol (mat_N_ a, int c);
+//! Sets the r-th row of a _N_x_N_ matrix to match a _N_ component vector.
+extern mat_N_ mat_N_setrow (mat_N_ a, int r, vec_N_ v);
+//! Sets the c-th column of a _N_x_N_ matrix to match a _N_ component vector.
+extern mat_N_ mat_N_setcol (mat_N_ a, int c, vec_N_ v);
+//! Transposes a _N_x_N_ matrix.
+extern mat_N_ mat_N_transpose (mat_N_ a);
+//! Prints a _N_x_N_ matrix using the specified format.
+extern void mat_N_disp (mat_N_ a, const char* form);
+
+
+//:: End of Common Macro
+
+// Standard, dimension-specific
+//:{
+typedef struct
+{   float v[2];
+}   vec2;
+
+typedef struct
+{   float v[3];
+}   vec3;
+
+typedef struct
+{   float m[2*2];
+}   mat2;
+#define M2ID(M,r,c) M.m[2*(r)+(c)]
+
+typedef struct
+{   float m[3*3];
+}   mat3;
+#define M3ID(M,r,c) M.m[3*(r)+(c)]
+
+typedef struct
+{   float m[4*4];
+}   mat4;
+#define M4ID(M,r,c) M.m[4*(r)+(c)]
+//:}
+//! Counter-clockwise quarter turn rotation of a 2 component vector.
+extern vec2 vec2perp (vec2 a);
+//! Returns a float indicating which side of the infinite line passing through a
+//! and b, point c is on.
+//! If positive, c is anticlockwise from the line ab.
+//! If negative, c is clockwise from the line ab.
+//! If zero, c is on the line ab.
+extern float vec2side
+(   vec2 a //!< First reference point on the line.
+,   vec2 b //!< Second reference point on the line.
+,   vec2 c //!< Point to test.
+);
+//! The angular mass of the triangle fromed by the origin, point a, and point b.
+//! Also known as moment of inertial.
+//! Negative value if the points are in clockwise ordering.
+//! Summing the result for all edges of a shape will provide the angular mass of
+//! the shape.
+extern float vec2angularmass (vec2 a, vec2 b);
+//! Determinant of a 2x2 matrix.
+extern float mat2det (mat2 a);
+//! Inverse of a 2x2 matrix.
+extern mat2 mat2inv (mat2 a);
+//! Cross product of two, 3 component vectors.
+extern vec3 vec3cross (vec3 a, vec3 b);
+//! 3x3 homogeneous rotation matrix from angle.
+extern mat3 mat3rotation (float a);
+//! 4x4 homogeneous rotation matrix from angle and axis index.
+extern mat4 mat4rotation (float a, int i);
+
+/*:: Semi-common
+local res = ""
+for i = 3, 4 do
+  res = res .. source:gsub ("_M_", tostring (i-1))
+                     :gsub ("_N_", tostring (i))
+end
+return res
+::*/
+// _M_ <-> _N_
+//:{
+#define _M_ 3
+
+typedef struct
+{   float v[_M_];
+} vec_M_;
+
+typedef struct
+{   float m[_M_*_M_];
+} mat_M_;
+
+#define M_M_ID(M,r,c) M.m[_M_*(r)+(c)]
+//:}
+//! Adds an element to a _M_ component vector at the given position
+extern vec_N_ vec_M_raise (vec_M_ a, int i, float b);
+//! _M_ component vector to homogeneous, _N_ component vector.
+extern vec_N_ vec_M_homogeneous (vec_M_ a);
+//! Remove the i-th component of a _N_ component vector.
+extern vec_M_ vec_N_drop (vec_N_ a, int i);
+//! _M_x_M_ matrix to homogeneous, _N_x_N_ matrix.
+extern mat_N_ mat_M_homogeneous (mat_M_ a);
+//! Remove the c-th column and r-th row of a _N_x_N_ matrix.
+extern mat_M_ mat_N_drop (mat_N_ a, int r, int c);
+//! _N_x_N_ homogeneous translation matrix from _M_ component vector.
+extern mat_N_ mat_N_translation (vec_M_ a);
+//! _N_x_N_ homogeneous scale matrix from _M_ component vector.
+extern mat_N_ mat_N_scale (vec_M_ a);
+//! Uniform _N_x_N_ homogeneous scale matrix.
+extern mat_N_ mat_N_scale_uniform (float a);
+//! Determinant of a _N_x_N_ matrix.
+extern float mat_N_det (mat_N_ a);
+//! Cofactor matrix of a _N_x_N_ matrix.
+extern mat_N_ mat_N_cofact (mat_N_ a);
+//! Adjugate of a _N_x_N_ matrix.
+extern mat_N_ mat_N_adj (mat_N_ a);
+//! Inverse of a _N_x_N_ matrix.
+extern mat_N_ mat_N_inv (mat_N_ a);
+
+//:: End of Semi-Common Macro
+
+// End of File
