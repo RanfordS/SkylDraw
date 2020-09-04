@@ -11,8 +11,8 @@ OBJDR = objs
 
 LMCS = vec
 LMHS = vec
-OBJS = main
-HDRS = core
+OBJS = main init
+HDRS = core init stb_image
 TARG = SkylDraw
 
 # extensions
