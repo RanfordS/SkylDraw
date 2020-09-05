@@ -4,15 +4,15 @@
 LMC   = lua luamacro.lua
 CMPLR = gcc
 FLAGS = -Wall -Wextra -Og -ggdb
-LINKS = -lm -lGL -lglfw -llua5.3
+LINKS = -lm -lGL -lGLU -lGLEW -lglfw -llua5.3
 OBJDR = objs
 
 # input files
 
 LMCS = vec
 LMHS = vec
-OBJS = main init
-HDRS = core init stb_image
+OBJS = main init font
+HDRS = core init font stb_image
 TARG = SkylDraw
 
 # extensions
