@@ -9,6 +9,7 @@ GLuint fontProgram;
 GLint fontInXY;
 GLint fontInST;
 GLint fontInMat;
+GLint fontInColor;
 GLint fontInImage;
 
 InitError init (void)
@@ -59,10 +60,14 @@ InitError init (void)
     GLuint vertShader = glCreateShader (GL_VERTEX_SHADER);
     const GLchar* vertCode [] =
     {   "#version 130\n"
+
         "in vec2 inXY;\n"
         "in vec2 inST;\n"
+
         "uniform mat3 M;\n"
+
         "out vec2 outST;\n"
+
         "void main ()\n"
         "{ outST = inST;\n"
         "  vec3 transform = M*vec3 (inXY, 1);\n"
@@ -75,12 +80,18 @@ InitError init (void)
     GLuint fragShader = glCreateShader (GL_FRAGMENT_SHADER);
     const GLchar* fragCode [] =
     {   "#version 130\n"
+
         "in vec2 outST;\n"
+        "in float outScale;\n"
+
+        "uniform vec3 inColor;\n"
         "uniform sampler2D image;\n"
+
         "out vec4 result;\n"
+
         "void main ()\n"
         "{\n"
-        "  result = vec4 (1,1,1,1-texture (image, outST).r);\n"
+        "  result = vec4 (inColor, 1 - texture (image, outST).r);\n"
         "}\n"
     };
     glShaderSource (fragShader, 1, fragCode, NULL);
@@ -129,11 +140,8 @@ InitError init (void)
     fontInXY = glGetAttribLocation (fontProgram, "inXY");
     fontInST = glGetAttribLocation (fontProgram, "inST");
     fontInMat = glGetUniformLocation (fontProgram, "M");
+    fontInColor = glGetUniformLocation (fontProgram, "inColor");
     fontInImage = glGetUniformLocation (fontProgram, "image");
-
-    printf ("program: %i\n", fontProgram);
-    printf ("attribuate locations: %i, %i\n", fontInXY, fontInST);
-    printf ("uniform locations: %i, %i\n", fontInMat, fontInImage);
 
     return INIT_SUCCESS;
 }

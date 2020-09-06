@@ -14,6 +14,7 @@ extern GLuint fontProgram;
 extern GLint fontInXY;
 extern GLint fontInST;
 extern GLint fontInMat;
+extern GLint fontInColor;
 extern GLint fontInImage;
 
 extern InitError init (void);

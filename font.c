@@ -11,14 +11,7 @@ typedef struct
         GLfloat t;
     };
 }   GLVec2;
-/*
-typedef struct
-{   GLfloat x;
-    GLfloat y;
-    GLfloat s;
-    GLfloat t;
-}   Vertex;
-*/
+
 typedef struct
 {   GLVec2 pos;
     GLVec2 tex;

@@ -30,34 +30,35 @@ int main(void)
     glfwSetErrorCallback (error_callback);
 
     TextObject text;
-    createTextObject ("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", &text);
+    createTextObject ("Giffib Callas", &text);
 
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents ();
 
-        float ratio;
         int width, height;
         glfwGetFramebufferSize (window, &width, &height);
         glViewport (0, 0, width, height);
 
         mat3 uimapping = {.m =
-            { 1.0f/width, 0.0f,       -1.0f
-            , 0.0f,      -1.0f/height, 1.0f
+            { 2.0f/width, 0.0f,       -1.0f
+            , 0.0f,      -2.0f/height, 1.0f
             , 0.0f,       0.0f,        1.0f}};
 
-        mat3 fontscale = mat3scale_uniform (2);
-
-        mat3 fontmat = mat3mul (uimapping, fontscale);
+        vec3 fontColor = {.v = {1.0f, 0.5f, 0.5f}};
+        mat3 fontMat = mat3multranspose (uimapping, mat3scale_uniform (1.0f));
 
         glClearColor (0.1f, 0.3f, 0.2f, 1.0f);
         glClear (GL_COLOR_BUFFER_BIT);
 
         glUseProgram (fontProgram);
         glBindTexture (GL_TEXTURE_2D, fontTexture);
-        glUniformMatrix3fv (fontInMat, 1, GL_TRUE, fontmat.m);
+        glUniformMatrix3fv (fontInMat, 1, GL_FALSE, fontMat.m);
+        glUniform3fv (fontInColor, 1, fontColor.v);
         glBindVertexArray (text.vao);
+
         glDrawArrays (GL_TRIANGLE_STRIP, 0, text.size);
+
         glBindVertexArray (0);
 
         glfwSwapBuffers (window);
