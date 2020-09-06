@@ -20,6 +20,7 @@ InitError init (void)
     luaL_openlibs (luaState);
 
     // glfw
+    glewExperimental = GL_TRUE;
     if (!glfwInit ())
         return INIT_ERR_GLFW;
 
@@ -29,6 +30,11 @@ InitError init (void)
         return INIT_ERR_WINDOW;
     glfwMakeContextCurrent (window);
 
+    // glew
+    glewInit ();
+    glEnable (GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // font texture
     int width, height, channels;
     stbi_uc* pixels = stbi_load ("font.png", &width, &height, &channels, 0);
@@ -37,9 +43,12 @@ InitError init (void)
 
     glGenTextures (1, &fontTexture);
     glBindTexture (GL_TEXTURE_2D, fontTexture);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                                 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                                    GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                                    GL_LINEAR);
     glGenerateMipmap (GL_TEXTURE_2D);
 
     stbi_image_free  (pixels);
@@ -68,10 +77,10 @@ InitError init (void)
     {   "#version 130\n"
         "in vec2 outST;\n"
         "uniform sampler2D image;\n"
-        //"out vec4 result;\n"
+        "out vec4 result;\n"
         "void main ()\n"
-        "{ gl_FragColor = texture (image, outST);\n"
-        //"  result = vec4 (1,1,1,1);\n"
+        "{\n"
+        "  result = vec4 (1,1,1,1-texture (image, outST).r);\n"
         "}\n"
     };
     glShaderSource (fragShader, 1, fragCode, NULL);
@@ -103,6 +112,8 @@ InitError init (void)
     glAttachShader (fontProgram, vertShader);
     glAttachShader (fontProgram, fragShader);
     glLinkProgram (fontProgram);
+    glDeleteShader (vertShader);
+    glDeleteShader (fragShader);
 
     glGetProgramiv (fontProgram, GL_LINK_STATUS, &res);
     if(res == GL_FALSE)

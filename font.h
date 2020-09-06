@@ -2,8 +2,8 @@
 #include "core.h"
 
 typedef struct
-{   GLuint vbo;
-    GLuint ibo;
+{   GLuint vao;
+    GLuint vbo;
     size_t size;
 }   TextObject;
 
