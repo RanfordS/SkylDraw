@@ -2,3 +2,5 @@ doc/**
 objs/**
 vec.c
 vec.h
+bezier.c
+bezier.h

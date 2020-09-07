@@ -9,10 +9,10 @@ OBJDR = objs
 
 # input files
 
-LMCS = vec
-LMHS = vec
-OBJS = main init font
-HDRS = core init font stb_image
+LMCS = vec bezier
+LMHS = vec bezier
+OBJS = main init font rmath
+HDRS = core init font rmath stb_image
 TARG = SkylDraw
 
 # extensions

@@ -1,0 +1,91 @@
+#include "bezier.h"
+#include "rmath.h"
+
+/*::
+local res = ""
+for i = 3, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+res = res .. source:gsub ("r_N_", "r")
+                   :gsub ("%[_N_%]", "*")
+                   :gsub ("_N_", "curve->pointCount")
+return res
+::*/
+//:{
+#define _N_ 4
+
+typedef struct
+{   vec2 points[_N_];
+    vec2 coefficients[_N_];
+    /*
+    GLuint vao;
+    GLuint vbo;
+    size_t vertCount;
+    */
+}   Bezier_N_;
+//:}
+
+void bezier_N_Update (Bezier_N_* curve)
+{   for (size_t i = 0; i < _N_; ++i)
+    {   vec2 sum = {};
+        for (size_t j = 0; j <= i; ++j)
+        {   float factor = rm_choose (i, j);
+            if ((i^j) & 1) factor = -factor;
+            sum = vec2add (sum, vec2scalarmul (curve->points[j], factor));
+        }
+        curve->coefficients[i] = vec2scalarmul (sum, rm_choose (_N_ - 1, i));
+    }
+}
+
+vec2 bezier_N_Position (Bezier_N_* curve, float t)
+{   vec2 sum = {};
+    float u = 1.0f; // current power of t
+    for (size_t i = 0; i < _N_; ++i)
+    {   sum = vec2add (sum, vec2scalarmul (curve->coefficients[i], u));
+        u *= t;
+    }
+    return sum;
+}
+
+vec2 bezier_N_Velocity (Bezier_N_* curve, float t)
+{   vec2 sum = {};
+    float u = 1.0f;
+    for (size_t i = 1; i < _N_; ++i)
+    {   sum = vec2add (sum, vec2scalarmul (curve->coefficients[i], u*i));
+        u *= t;
+    }
+    return sum;
+}
+
+/*
+void bezier_N_VAO (Bezier_N_* curve)
+{
+    vec2* data = calloc (curve->vertCount, sizeof (vec2));
+
+    for (size_t i = 0; i < curve->vertCount; ++i)
+    {   float t = i / (curve->vertCount - 1.0f);
+        data[i] = bezier_N_Position (curve, t);
+    }
+
+    glGenVertexArrays (1, &curve->vao);
+    glGenBuffers (1, &curve->vbo);
+
+    glBindVertexArray (curve->vao);
+    glBindBuffer (GL_ARRAY_BUFFER, curve->vbo);
+    glBufferData (GL_ARRAY_BUFFER,
+        curve->vertCount*sizeof (vec2), (void*) data, GL_STATIC_DRAW);
+    free (data);
+
+    glVertexAttribPointer
+    (   0
+    ,   2, GL_FLOAT
+    ,   GL_FALSE
+    ,   sizeof (vec2), NULL);
+    glEnableVertexAttribArray (0);
+
+    glBindBuffer (GL_ARRAY_BUFFER, 0);
+    glBindVertexArray (0);
+}
+*/
+
+//::

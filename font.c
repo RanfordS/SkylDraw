@@ -1,5 +1,7 @@
 #include "font.h"
 #include "init.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 typedef struct
 {   union
@@ -23,6 +25,172 @@ typedef struct
     Vertex tr;
     Vertex br;
 }   Quad;
+
+GLuint fontTexture;
+GLuint fontVertShader;
+GLuint fontFragShader;
+GLuint fontProgram;
+GLint  fontInXY;
+GLint  fontInST;
+GLint  fontInMat;
+GLint  fontInColor;
+GLint  fontInImage;
+
+// -*- //
+
+bool initFontTexture (void)
+{
+    // font texture
+    int width, height, channels;
+    stbi_uc* pixels = stbi_load ("font.png", &width, &height, &channels, 0);
+
+    if (!pixels)
+        return false;
+
+    glGenTextures (1, &fontTexture);
+    glBindTexture (GL_TEXTURE_2D, fontTexture);
+    glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                                 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                                    GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                                    GL_LINEAR);
+    glGenerateMipmap (GL_TEXTURE_2D);
+
+    stbi_image_free  (pixels);
+    return true;
+}
+
+const GLchar* vertCode [] =
+{
+    "#version 130\n"
+
+    "in vec2 inXY;\n"
+    "in vec2 inST;\n"
+
+    "uniform mat3 M;\n"
+
+    "out vec2 outST;\n"
+
+    "void main ()\n"
+    "{\n"
+    "  outST = inST;\n"
+    "  vec3 transform = M*vec3 (inXY, 1);\n"
+    "  gl_Position = vec4 (transform.xy, 0, 1);\n"
+    "}\n"
+};
+
+const GLchar* fragCode [] =
+{
+    "#version 130\n"
+
+    "in vec2 outST;\n"
+    "in float outScale;\n"
+
+    "uniform vec3 inColor;\n"
+    "uniform sampler2D image;\n"
+
+    "out vec4 result;\n"
+
+    "void main ()\n"
+    "{\n"
+    "  result = vec4 (inColor, 1 - texture (image, outST).r);\n"
+    "}\n"
+};
+
+bool shaderError (GLuint shader)
+{
+    GLint res;
+    res = GL_TRUE;
+    glGetShaderiv (shader, GL_COMPILE_STATUS, &res);
+
+    if (res == GL_FALSE)
+    {
+        GLint ls = 0;
+        glGetShaderiv (shader, GL_INFO_LOG_LENGTH, &ls);
+        GLchar* error = malloc (ls*sizeof (GLchar));
+
+        glGetShaderInfoLog (shader, ls, &ls, error);
+        printf ("[!] Failed to compile shader: %s\n", error);
+        free (error);
+
+        return true;
+    }
+    return false;
+}
+
+bool programError (GLuint program)
+{
+    GLint res;
+    res = GL_TRUE;
+    glGetProgramiv (program, GL_LINK_STATUS, &res);
+
+    if (res == GL_FALSE)
+    {
+        GLint ls = 0;
+        glGetProgramiv (program, GL_INFO_LOG_LENGTH, &ls);
+        GLchar* error = malloc (ls*sizeof(GLchar));
+
+        glGetProgramInfoLog (program, ls, &ls, error);
+        printf ("[!] Failed to link program: %s\n", error);
+        free (error);
+
+        return true;
+    }
+    return false;
+}
+
+bool initFontShader (void)
+{
+    // font shader
+    fontVertShader = glCreateShader (GL_VERTEX_SHADER);
+    glShaderSource (fontVertShader, 1, vertCode, NULL);
+    glCompileShader (fontVertShader);
+
+    fontFragShader = glCreateShader (GL_FRAGMENT_SHADER);
+    glShaderSource (fontFragShader, 1, fragCode, NULL);
+    glCompileShader (fontFragShader);
+
+    if (shaderError (fontVertShader)
+    ||  shaderError (fontFragShader))
+        return false;
+
+    fontProgram = glCreateProgram ();
+
+    glAttachShader (fontProgram, fontVertShader);
+    glAttachShader (fontProgram, fontFragShader);
+    glLinkProgram (fontProgram);
+
+    if (programError (fontProgram))
+    {
+        return false;
+    }
+
+    fontInXY = glGetAttribLocation (fontProgram, "inXY");
+    fontInST = glGetAttribLocation (fontProgram, "inST");
+    fontInMat = glGetUniformLocation (fontProgram, "M");
+    fontInColor = glGetUniformLocation (fontProgram, "inColor");
+    fontInImage = glGetUniformLocation (fontProgram, "image");
+
+    return true;
+}
+
+bool initFont (void)
+{
+    if (!initFontShader ())
+        return false;
+    return initFontTexture ();
+}
+
+void quitFont (void)
+{
+    glDeleteProgram (fontProgram);
+    glDeleteShader (fontVertShader);
+    glDeleteShader (fontFragShader);
+    glDeleteTextures (1, &fontTexture);
+}
+
+// -*- //
 
 void createTextObject (char* string, TextObject* result)
 {
@@ -59,12 +227,18 @@ void createTextObject (char* string, TextObject* result)
         (GL_ARRAY_BUFFER, length*sizeof (Quad), (void*)data, GL_STATIC_DRAW);
     free (data);
 
-    glVertexAttribPointer (fontInXY, 2, GL_FLOAT, GL_FALSE,
-        sizeof (Vertex), (void*)offsetof (Vertex, pos));
+    glVertexAttribPointer
+    (   fontInXY
+    ,   2, GL_FLOAT
+    ,   GL_FALSE
+    ,   sizeof (Vertex), (void*) offsetof (Vertex, pos));
     glEnableVertexAttribArray (fontInXY);
 
-    glVertexAttribPointer (fontInST, 2, GL_FLOAT, GL_FALSE,
-        sizeof (Vertex), (void*)offsetof (Vertex, tex));
+    glVertexAttribPointer
+    (   fontInST
+    ,   2, GL_FLOAT
+    ,   GL_FALSE
+    ,   sizeof (Vertex), (void*) offsetof (Vertex, tex));
     glEnableVertexAttribArray (fontInST);
 
     glBindBuffer (GL_ARRAY_BUFFER, 0);

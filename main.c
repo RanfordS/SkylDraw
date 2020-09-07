@@ -1,6 +1,7 @@
 #include "core.h"
 #include "init.h"
 #include "font.h"
+#include "bezier.h"
 
 void error_callback (int error, const char* description)
 {
@@ -32,6 +33,17 @@ int main(void)
     TextObject text;
     createTextObject ("Giffib Callas", &text);
 
+    Bezier4 bezier = {.points =
+    {   {.v = {-1.0f, -1.0f}}
+    ,   {.v = {-1.0f,  0.0f}}
+    ,   {.v = { 1.0f, -0.0f}}
+    ,   {.v = { 1.0f,  1.0f}}}};
+    bezier4Update (&bezier);
+
+    vec2 curve[65] = {};
+    for (int i = 0; i <= 64; ++i)
+        curve[i] = bezier4Position (&bezier, i/64.0f);
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents ();
@@ -60,6 +72,16 @@ int main(void)
         glDrawArrays (GL_TRIANGLE_STRIP, 0, text.size);
 
         glBindVertexArray (0);
+
+        glUseProgram (0);
+        glColor4f (1.0, 1.0, 1.0, 1.0);
+        glBegin (GL_LINES);
+        for (int i = 0; i < 64; ++i)
+        {
+            glVertex2fv (curve[i].v);
+            glVertex2fv (curve[i+1].v);
+        }
+        glEnd ();
 
         glfwSwapBuffers (window);
     }

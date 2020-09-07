@@ -1,0 +1,34 @@
+#pragma once
+#include "vec.h"
+
+/*::
+local res = ""
+for i = 3, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+//:{
+#define _N_ 4
+//:}
+
+typedef struct
+{   vec2 points[_N_];
+    vec2 coefficients[_N_];
+}   Bezier_N_;
+
+extern void bezier_N_Update (Bezier_N_* curve);
+extern vec2 bezier_N_Position (Bezier_N_* curve, float t);
+extern vec2 bezier_N_Velocity (Bezier_N_* curve, float t);
+
+//::
+
+typedef struct
+{   size_t pointCount;
+    vec2* points;
+    vec2* coefficients;
+}   Bezier;
+
+extern void bezierUpdate (Bezier* curve);
+extern vec2 bezierPosition (Bezier* curve, float t);
+extern vec2 bezierVelocity (Bezier* curve, float t);
