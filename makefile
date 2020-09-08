@@ -9,10 +9,10 @@ OBJDR = objs
 
 # input files
 
-LMCS = vec bezier
-LMHS = vec bezier
-OBJS = main init font rmath
-HDRS = core init font rmath stb_image
+LMCS = vec bezier buffergen
+LMHS = vec bezier buffergen
+OBJS = main init font shadertools lineshader rmath circle
+HDRS = core init font shadertools lineshader rmath circle stb_image
 TARG = SkylDraw
 
 # extensions
@@ -58,7 +58,7 @@ cleanobjs :
 .PHONY : cleanmacro
 cleanmacro :
 	@echo -e '\033[1;35mCleaning macro files\033[0m'
-	@rm -f $(addsuffix .c, $(LMCOBJS)) $(addsuffix .h, $(LMCHDRS))
+	@rm -f $(addsuffix .c, $(LMCS)) $(addsuffix .h, $(LMHS))
 
 .PHONY : cleandoc
 cleandoc :

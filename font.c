@@ -1,7 +1,8 @@
 #include "font.h"
-#include "init.h"
+//#include "init.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "shadertools.h"
 
 typedef struct
 {   union
@@ -61,7 +62,7 @@ bool initFontTexture (void)
     return true;
 }
 
-const GLchar* vertCode [] =
+static const GLchar* vertCode [] =
 {
     "#version 130\n"
 
@@ -80,7 +81,7 @@ const GLchar* vertCode [] =
     "}\n"
 };
 
-const GLchar* fragCode [] =
+static const GLchar* fragCode [] =
 {
     "#version 130\n"
 
@@ -97,48 +98,6 @@ const GLchar* fragCode [] =
     "  result = vec4 (inColor, 1 - texture (image, outST).r);\n"
     "}\n"
 };
-
-bool shaderError (GLuint shader)
-{
-    GLint res;
-    res = GL_TRUE;
-    glGetShaderiv (shader, GL_COMPILE_STATUS, &res);
-
-    if (res == GL_FALSE)
-    {
-        GLint ls = 0;
-        glGetShaderiv (shader, GL_INFO_LOG_LENGTH, &ls);
-        GLchar* error = malloc (ls*sizeof (GLchar));
-
-        glGetShaderInfoLog (shader, ls, &ls, error);
-        printf ("[!] Failed to compile shader: %s\n", error);
-        free (error);
-
-        return true;
-    }
-    return false;
-}
-
-bool programError (GLuint program)
-{
-    GLint res;
-    res = GL_TRUE;
-    glGetProgramiv (program, GL_LINK_STATUS, &res);
-
-    if (res == GL_FALSE)
-    {
-        GLint ls = 0;
-        glGetProgramiv (program, GL_INFO_LOG_LENGTH, &ls);
-        GLchar* error = malloc (ls*sizeof(GLchar));
-
-        glGetProgramInfoLog (program, ls, &ls, error);
-        printf ("[!] Failed to link program: %s\n", error);
-        free (error);
-
-        return true;
-    }
-    return false;
-}
 
 bool initFontShader (void)
 {

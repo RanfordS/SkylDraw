@@ -1,0 +1,70 @@
+#include "buffergen.h"
+
+void createBuffer (BufferInfo* buffer, void* data)
+{
+    glGenVertexArrays (1, &buffer->vao);
+    glGenBuffers (1, &buffer->vbo);
+
+    glBindVertexArray (buffer->vao);
+    glBindBuffer (GL_ARRAY_BUFFER, buffer->vbo);
+    glBufferData (GL_ARRAY_BUFFER,
+        buffer->vertCount*sizeof (vec2), data, GL_STATIC_DRAW);
+
+    glVertexAttribPointer
+    (   0
+    ,   2, GL_FLOAT
+    ,   GL_FALSE
+    ,   sizeof (vec2), NULL);
+    glEnableVertexAttribArray (0);
+
+    glBindBuffer (GL_ARRAY_BUFFER, 0);
+    glBindVertexArray (0);
+}
+
+/*:: Bezier buffer generators
+local res = ""
+for i = 3, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+res = res .. source:gsub ("r_N_", "r")
+                   :gsub ("%[_N_%]", "*")
+                   :gsub ("_N_", "curve->pointCount")
+return res
+::*/
+//:{
+#define _N_ 4
+
+typedef struct
+{   vec2 points[_N_];
+    vec2 coefficients[_N_];
+}   Bezier_N_;
+
+vec2 bezier_N_Position (Bezier_N_* curve, float t);
+//:}
+void createBezier_N_Buffer (Bezier_N_* curve, BufferInfo* buffer)
+{
+    vec2* data = calloc (buffer->vertCount, sizeof (vec2));
+
+    for (size_t i = 0; i < buffer->vertCount; ++i)
+    {   float t = i / (buffer->vertCount - 1.0f);
+        data[i] = bezier_N_Position (curve, t);
+    }
+
+    createBuffer (buffer, data);
+    free (data);
+}
+
+//::
+
+void createCircle (Circle* circle, BufferInfo* buffer)
+{
+    vec2* data = calloc (buffer->vertCount, sizeof (vec2));
+
+    for (size_t i = 0; i < buffer->vertCount; ++i)
+    {   float t = M_PI*i / (float) buffer->vertCount;
+        data[i] = vec2add (vec2polar (t, circle->radius), circle->center);
+    }
+
+    createBuffer (buffer, data);
+    free (data);
+}

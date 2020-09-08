@@ -1,0 +1,25 @@
+#include "core.h"
+#include "bezier.h"
+#include "circle.h"
+
+typedef struct
+{   size_t vertCount;
+    GLuint vao;
+    GLuint vbo;
+}   BufferInfo;
+
+/*::
+local res = ""
+for i = 3, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+//:{
+typedef struct {} Bezier_N_;
+//:}
+extern void createBezier_N_Buffer (Bezier_N_* curve, BufferInfo* buffer);
+//::
+extern void createBezierBuffer (Bezier* curve, BufferInfo* buffer);
+extern void createCircle (Circle* circle, BufferInfo* buffer);
+

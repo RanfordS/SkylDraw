@@ -17,11 +17,9 @@ return res
 typedef struct
 {   vec2 points[_N_];
     vec2 coefficients[_N_];
-    /*
     GLuint vao;
     GLuint vbo;
     size_t vertCount;
-    */
 }   Bezier_N_;
 //:}
 
@@ -56,7 +54,6 @@ vec2 bezier_N_Velocity (Bezier_N_* curve, float t)
     }
     return sum;
 }
-
 /*
 void bezier_N_VAO (Bezier_N_* curve)
 {
@@ -87,5 +84,4 @@ void bezier_N_VAO (Bezier_N_* curve)
     glBindVertexArray (0);
 }
 */
-
 //::

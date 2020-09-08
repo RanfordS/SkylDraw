@@ -304,6 +304,11 @@ vec2 vec2perp (vec2 a)
     return b;
 }
 
+vec2 vec2polar (float theta, float radius)
+{   vec2 a = {.v = {cosf (theta), sinf (theta)}};
+    return vec2scalarmul (a, radius);
+}
+
 float vec2side (vec2 a, vec2 b, vec2 c)
 {   vec2 ab = vec2sub (b, a);
     vec2 bc = vec2sub (c, b);
@@ -337,6 +342,13 @@ mat2 mat2inv (mat2 a)
     b.m[0] =  a.m[3]/det; b.m[1] = -a.m[1]/det;
     b.m[2] = -a.m[2]/det; b.m[3] =  a.m[0]/det;
     return b;
+}
+
+vec2 vec2cramers (mat2 A, vec2 b)
+{   vec2 res;
+    res.v[0] = mat2det (mat2setcol (A, 0, b));
+    res.v[1] = mat2det (mat2setcol (A, 1, b));
+    return vec2scalardiv (res, mat2det (A));
 }
 
 vec3 vec3cross (vec3 a, vec3 b)

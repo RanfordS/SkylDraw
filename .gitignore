@@ -4,3 +4,5 @@ vec.c
 vec.h
 bezier.c
 bezier.h
+buffergen.c
+buffergen.h

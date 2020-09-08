@@ -138,6 +138,8 @@ typedef struct
 //:}
 //! Counter-clockwise quarter turn rotation of a 2 component vector.
 extern vec2 vec2perp (vec2 a);
+//! Converts from polar coordinates to cartesian.
+extern vec2 vec2polar (float theta, float radius);
 //! Returns a float indicating which side of the infinite line passing through a
 //! and b, point c is on.
 //! If positive, c is anticlockwise from the line ab.
@@ -158,6 +160,8 @@ extern float vec2angularmass (vec2 a, vec2 b);
 extern float mat2det (mat2 a);
 //! Inverse of a 2x2 matrix.
 extern mat2 mat2inv (mat2 a);
+//! Cramers rule.
+extern vec2 vec2cramers (mat2 A, vec2 b);
 //! Cross product of two, 3 component vectors.
 extern vec3 vec3cross (vec3 a, vec3 b);
 //! 3x3 homogeneous rotation matrix from angle.
