@@ -36,6 +36,8 @@ int main(void)
     TextObject text;
     createTextObject ("Giffib Callas", &text);
 
+    // -*- //
+
     Bezier4 bezier = {.points =
     {   {.v = {-1.0f, -1.0f}}
     ,   {.v = {-1.0f,  0.0f}}
@@ -46,11 +48,48 @@ int main(void)
     BufferInfo bezierBuffer = {};
     bezierBuffer.vertCount = 65;
     createBezier4Buffer (&bezier, &bezierBuffer);
-/*
-    vec2 curve[65] = {};
-    for (int i = 0; i <= 64; ++i)
-        curve[i] = bezier4Position (&bezier, i/64.0f);
-*/
+
+    // -*- //
+
+    Circle circle = {};
+    circle.radius = 1.0f;
+
+    BufferInfo circleBuffer = {};
+    circleBuffer.vertCount = 64;
+    createCircleBuffer (&circle, &circleBuffer);
+
+    // -*- //
+
+    Arc arc = {};
+    arc.radius = 0.75f;
+    arc.angleStart = 0.25f*M_PI;
+    arc.angleRange = 1.50f*M_PI;
+
+    BufferInfo arcBuffer = {};
+    arcBuffer.vertCount = 64;
+    createArcBuffer (&arc, &arcBuffer);
+
+    // -*- //
+
+    Fontline fl = {};
+    fl.pointCount = 8;
+    fl.points = calloc (8, sizeof (vec2));
+    fl.oncurve = calloc (8, sizeof (bool));
+
+    fl.points[0].v[0] = -1.0f; fl.points[0].v[1] = -1.0f; fl.oncurve[0] = true;
+    fl.points[1].v[0] =  0.5f; fl.points[1].v[1] = -1.0f; fl.oncurve[1] = true;
+    fl.points[2].v[0] =  1.0f; fl.points[2].v[1] = -1.0f; fl.oncurve[2] = false;
+    fl.points[3].v[0] =  1.0f; fl.points[3].v[1] =  1.0f; fl.oncurve[3] = false;
+    fl.points[4].v[0] =  0.5f; fl.points[4].v[1] =  1.0f; fl.oncurve[4] = true;
+    fl.points[5].v[0] = -0.5f; fl.points[5].v[1] =  1.0f; fl.oncurve[5] = true;
+    fl.points[6].v[0] = -1.0f; fl.points[6].v[1] =  1.0f; fl.oncurve[6] = false;
+    fl.points[7].v[0] = -1.0f; fl.points[7].v[1] =  0.0f; fl.oncurve[7] = true;
+
+    BufferInfo flBuffer = {};
+    createFontline (&fl, &flBuffer, 16);
+
+    // -*- //
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents ();
@@ -58,6 +97,10 @@ int main(void)
         int width, height;
         glfwGetFramebufferSize (window, &width, &height);
         glViewport (0, 0, width, height);
+
+        vec2 dim = {.v = {1.0f/width, 1.0f/height}};
+        dim = vec2scalarmul (dim, width < height ? width : height);
+        mat3 aspect = mat3scale (dim);
 
         mat3 uimapping = {.m =
             { 2.0f/width, 0.0f,       -1.0f
@@ -81,14 +124,20 @@ int main(void)
         glBindVertexArray (0);
 
         vec4 lineColor = {.v = {1.0f, 1.0f, 1.0f, 1.0f}};
-        mat3 lineMat = mat3scale_uniform (0.5f);
+        mat3 lineMat = mat3mul (aspect, mat3scale_uniform (0.5f));
 
         glUseProgram (lineProgram);
         glUniformMatrix3fv (lineInMat, 1, GL_TRUE, lineMat.m);
         glUniform4fv (lineInColor, 1, lineColor.v);
-        glBindVertexArray (bezierBuffer.vao);
+
+        /*glBindVertexArray (bezierBuffer.vao);
         glDrawArrays (GL_LINE_STRIP, 0, bezierBuffer.vertCount);
-        //glDrawArrays (GL_TRIANGLE_FAN, 0, bezierBuffer.vertCount);
+        glBindVertexArray (circleBuffer.vao);
+        glDrawArrays (GL_LINE_LOOP, 0, circleBuffer.vertCount);
+        glBindVertexArray (arcBuffer.vao);
+        glDrawArrays (GL_LINE_STRIP, 0, arcBuffer.vertCount);*/
+        glBindVertexArray (flBuffer.vao);
+        glDrawArrays (GL_LINE_LOOP, 0, flBuffer.vertCount);
 
         glBindVertexArray (0);
         /*

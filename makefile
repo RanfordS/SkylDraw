@@ -11,8 +11,8 @@ OBJDR = objs
 
 LMCS = vec bezier buffergen
 LMHS = vec bezier buffergen
-OBJS = main init font shadertools lineshader rmath circle
-HDRS = core init font shadertools lineshader rmath circle stb_image
+OBJS = main init font shadertools lineshader rmath circle arc
+HDRS = core init font shadertools lineshader rmath circle arc stb_image
 TARG = SkylDraw
 
 # extensions

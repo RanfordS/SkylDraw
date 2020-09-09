@@ -53,16 +53,89 @@ void createBezier_N_Buffer (Bezier_N_* curve, BufferInfo* buffer)
     createBuffer (buffer, data);
     free (data);
 }
-
 //::
 
-void createCircle (Circle* circle, BufferInfo* buffer)
+void createCircleBuffer (Circle* circle, BufferInfo* buffer)
 {
     vec2* data = calloc (buffer->vertCount, sizeof (vec2));
 
     for (size_t i = 0; i < buffer->vertCount; ++i)
-    {   float t = M_PI*i / (float) buffer->vertCount;
+    {   float t = 2.0f*M_PI*i / buffer->vertCount;
         data[i] = vec2add (vec2polar (t, circle->radius), circle->center);
+    }
+
+    createBuffer (buffer, data);
+    free (data);
+}
+
+void createArcBuffer (Arc* arc, BufferInfo* buffer)
+{
+    vec2* data = calloc (buffer->vertCount, sizeof (vec2));
+
+    for (size_t i = 0; i < buffer->vertCount; ++i)
+    {   float t = arc->angleRange*i / (buffer->vertCount - 1);
+        t += arc->angleStart;
+        data[i] = vec2add (vec2polar (t, arc->radius), arc->center);
+    }
+
+    createBuffer (buffer, data);
+    free (data);
+}
+
+void createFontline (Fontline* line, BufferInfo* buffer, size_t curve_res)
+{
+    // calculate the number of points required
+    size_t count = 0;
+    size_t p = line->pointCount - 1;
+    for (size_t c = 0; c < line->pointCount; ++c)
+    {
+        if (line->oncurve[c])
+        {   if (line->oncurve[p])
+                count += 1;
+        }
+        else
+            count += curve_res;
+        p = c;
+    }
+    buffer->vertCount = count;
+
+    vec2* data = calloc (count, sizeof (vec2));
+
+    // fill data
+    size_t i = 0;
+    p = line->pointCount - 1;
+    for (size_t c = 0; c < line->pointCount; ++c)
+    {
+        if (line->oncurve[c])
+        {   if (line->oncurve[p])
+                data[i++] = line->points[p];
+        }
+        else
+        {
+            size_t n = (c+1) % line->pointCount;
+            vec2 pre = line->points[p];
+            vec2 cur = line->points[c];
+            vec2 nxt = line->points[n];
+
+            if (!line->oncurve[p])
+                pre = vec2scalardiv (vec2add (pre, cur), 2.0f);
+            if (!line->oncurve[n])
+                nxt = vec2scalardiv (vec2add (nxt, cur), 2.0f);
+
+            Bezier3 curve = {};
+            curve.points[0] = pre;
+            curve.points[1] = cur;
+            curve.points[2] = nxt;
+            bezier3Update (&curve);
+
+            for (size_t j = 0; j < curve_res; ++j)
+            {
+                float t = j / (float) curve_res;
+                data[i++] = bezier3Position (&curve, t);
+            }
+        }
+
+        p = c;
     }
 
     createBuffer (buffer, data);

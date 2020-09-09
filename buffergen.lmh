@@ -1,12 +1,19 @@
+#pragma once
 #include "core.h"
 #include "bezier.h"
 #include "circle.h"
+#include "arc.h"
+#include "fontline.h"
 
 typedef struct
 {   size_t vertCount;
     GLuint vao;
     GLuint vbo;
 }   BufferInfo;
+
+//:{
+typedef struct {} Bezier_N_;
+//:}
 
 /*::
 local res = ""
@@ -15,11 +22,9 @@ for i = 3, 4 do
 end
 return res
 ::*/
-//:{
-typedef struct {} Bezier_N_;
-//:}
 extern void createBezier_N_Buffer (Bezier_N_* curve, BufferInfo* buffer);
 //::
 extern void createBezierBuffer (Bezier* curve, BufferInfo* buffer);
-extern void createCircle (Circle* circle, BufferInfo* buffer);
-
+extern void createCircleBuffer (Circle* circle, BufferInfo* buffer);
+extern void createArcBuffer (Arc* arc, BufferInfo* buffer);
+extern void createFontline (Fontline* line, BufferInfo* buffer, size_t curve_res);
