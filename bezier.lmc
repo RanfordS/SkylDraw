@@ -1,7 +1,7 @@
 #include "bezier.h"
 #include "rmath.h"
 
-/*::
+/*:: Common
 local res = ""
 for i = 3, 4 do
     res = res .. source:gsub ("_N_", tostring (i))
@@ -17,9 +17,6 @@ return res
 typedef struct
 {   vec2 points[_N_];
     vec2 coefficients[_N_];
-    GLuint vao;
-    GLuint vbo;
-    size_t vertCount;
 }   Bezier_N_;
 //:}
 
@@ -54,34 +51,39 @@ vec2 bezier_N_Velocity (Bezier_N_* curve, float t)
     }
     return sum;
 }
+
+//::
 /*
-void bezier_N_VAO (Bezier_N_* curve)
+size_t bezier3IntersectionCount (Bezier3* curve, vec2 p, vec2 d)
 {
-    vec2* data = calloc (curve->vertCount, sizeof (vec2));
+    vec2 n = vec2perp (d);
+    float t = -0.5f*vec2dot (curve->coefficients[1], n)
+                  / vec2dot (curve->coefficients[2], n);
+    if (t < 0.0f || 1.0f < t)
+        t = 0.0f;
 
-    for (size_t i = 0; i < curve->vertCount; ++i)
-    {   float t = i / (curve->vertCount - 1.0f);
-        data[i] = bezier_N_Position (curve, t);
-    }
+    float s = vec2dot (bezier3Position (curve, 0), n);
+    float m = vec2dot (bezier3Position (curve, t), n);
+    float e = vec2dot (bezier3Position (curve, 1), n);
 
-    glGenVertexArrays (1, &curve->vao);
-    glGenBuffers (1, &curve->vbo);
-
-    glBindVertexArray (curve->vao);
-    glBindBuffer (GL_ARRAY_BUFFER, curve->vbo);
-    glBufferData (GL_ARRAY_BUFFER,
-        curve->vertCount*sizeof (vec2), (void*) data, GL_STATIC_DRAW);
-    free (data);
-
-    glVertexAttribPointer
-    (   0
-    ,   2, GL_FLOAT
-    ,   GL_FALSE
-    ,   sizeof (vec2), NULL);
-    glEnableVertexAttribArray (0);
-
-    glBindBuffer (GL_ARRAY_BUFFER, 0);
-    glBindVertexArray (0);
+    return (signbit (s) != signbit (m))
+        +  (signbit (m) != signbit (e));
 }
 */
-//::
+
+size_t bezier3IntersectionCount (Bezier3* curve, vec2 p, vec2 d)
+{
+    vec2 n = vec2perp (d);
+
+    float a = vec2dot (curve->coefficients[2], n);
+    float b = vec2dot (curve->coefficients[1], n);
+    float c = vec2dot (vec2sub (curve->coefficients[0], p), n);
+
+    float t[2];
+    if (quadraticSolve (a, b, c, t))
+    {
+        return (0.0f <= t[0] && t[0] < 1.0f)
+            +  (0.0f <= t[1] && t[1] < 1.0f);
+    }
+    return 0;
+}

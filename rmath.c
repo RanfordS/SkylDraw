@@ -26,3 +26,15 @@ float rm_sign (float a)
     if (a == 0.0f) return 0.0f;
     return copysignf (1.0f, a);
 }
+
+bool quadraticSolve (float a, float b, float c, float res[2])
+{
+    float det = b*b - 4*a*c;
+    if (det < 0)
+        return false;
+    det = sqrtf (det);
+
+    res[0] = (-b - det) / (2*a);
+    res[1] = (-b + det) / (2*a);
+    return true;
+}

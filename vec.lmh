@@ -95,6 +95,8 @@ extern mat_N_ mat_N_scalarsub (mat_N_ a, float b);
 extern mat_N_ mat_N_scalarmul (mat_N_ a, float b);
 //! Divides each component of a _N_x_N_ matrix by a scalar.
 extern mat_N_ mat_N_scalardiv (mat_N_ a, float b);
+//! Multiplies a _N_x_N_ matrix by a _N_ component vector.
+extern vec_N_ mat_N_vecmul (mat_N_ a, vec_N_ b);
 //! Gets the r-th row of a _N_x_N_ matrix as a _N_ component vector.
 extern vec_N_ mat_N_getrow (mat_N_ a, int r);
 //! Gets the c-th column of a _N_x_N_ matrix as a _N_ component vector.

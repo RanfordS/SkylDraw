@@ -243,7 +243,15 @@ mat_N_ mat_N_scalardiv (mat_N_ a, float b)
     return c;
 }
 
-
+vec_N_ mat_N_vecmul (mat_N_ a, vec_N_ b)
+{   vec_N_ c = {};
+    for (int i = 0; i < _N_; ++i)
+    {   for (int j = 0; j < _N_; ++j)
+        {   c.v[i] += M3ID(a,i,j)*b.v[j];
+        }
+    }
+    return c;
+}
 
 vec_N_ mat_N_getrow (mat_N_ a, int r)
 {   vec_N_ v;
