@@ -1,9 +1,6 @@
 #pragma once
 #include "core.h"
-#include "bezier.h"
-#include "circle.h"
-#include "arc.h"
-#include "fontline.h"
+#include "shapes.h"
 
 typedef struct
 {   size_t vertCount;

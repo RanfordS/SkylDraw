@@ -1,5 +1,4 @@
-#include "bezier.h"
-#include "rmath.h"
+#include "shapes.h"
 
 /*:: Common
 local res = ""

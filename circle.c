@@ -1,5 +1,4 @@
-#include "circle.h"
-//#include <math.h>
+#include "shapes.h"
 
 Circle circle3Point (vec2 a, vec2 b, vec2 c)
 {

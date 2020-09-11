@@ -2,7 +2,6 @@
 #include "init.h"
 #include "font.h"
 #include "lineshader.h"
-#include "bezier.h"
 #include "buffergen.h"
 
 void error_callback (int error, const char* description)

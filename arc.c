@@ -1,6 +1,4 @@
-#include "arc.h"
-#include "circle.h"
-#include <math.h>
+#include "shapes.h"
 
 static Arc anglesFromEnds (Arc arc, vec2 s, vec2 e)
 {
