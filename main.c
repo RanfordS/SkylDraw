@@ -3,6 +3,7 @@
 #include "font.h"
 #include "lineshader.h"
 #include "buffergen.h"
+#include "transform.h"
 
 void error_callback (int error, const char* description)
 {
@@ -96,18 +97,48 @@ int main(void)
         int width, height;
         glfwGetFramebufferSize (window, &width, &height);
         glViewport (0, 0, width, height);
+        //printf ("size: %i %i\n", width, height);
 
-        vec2 dim = {.v = {1.0f/width, 1.0f/height}};
-        dim = vec2scalarmul (dim, width < height ? width : height);
-        mat3 aspect = mat3scale (dim);
+        vec2 dim = {.v = {2.0f/width, -2.0f/height}};
 
+        Transform uimapping;
+        {
+            Transform scale = transformScale (dim);
+            vec2 pos = {.v = {1.0f, -1.0f}};
+            Transform trans = transformTranslate (pos);
+            uimapping = transformMul (trans, scale);
+
+            /*
+            printf ("dim ->\n");
+            vec2disp (dim, " %f ");
+            printf ("scale ->\n");
+            mat3disp (scale.mat, " %10.6f ");
+            printf ("trans ->\n");
+            mat3disp (trans.mat, " %10.6f ");
+            printf ("uimapping ->\n");
+            mat3disp (uimapping.mat, " %10.6f ");
+            printf ("\n");
+            */
+        }
+
+        dim.v[1] = -dim.v[1];
+        dim = vec2scalarmul (dim, 0.5*(width < height ? width : height));
+
+        //mat3 aspect = mat3scale (dim);
+        Transform aspect = transformScale (dim);
+
+        /*
         mat3 uimapping = {.m =
             { 2.0f/width, 0.0f,       -1.0f
             , 0.0f,      -2.0f/height, 1.0f
             , 0.0f,       0.0f,        1.0f}};
+        */
+
+
+        // -*- //
 
         vec3 fontColor = {.v = {1.0f, 1.0f, 1.0f}};
-        mat3 fontMat = mat3multranspose (uimapping, mat3scale_uniform (1.0f));
+        mat3 fontMat = mat3multranspose (uimapping.mat, mat3scale_uniform (1.0f));
 
         glClearColor (0.10f, 0.20f, 0.15f, 1.00f);
         glClear (GL_COLOR_BUFFER_BIT);
@@ -123,10 +154,55 @@ int main(void)
         glBindVertexArray (0);
 
         vec4 lineColor = {.v = {1.0f, 1.0f, 1.0f, 1.0f}};
-        mat3 lineMat = mat3mul (aspect, mat3scale_uniform (0.5f));
+        Transform lineMat = transformMul (aspect, transformScaleUniform (0.5f));
+
+        /*
+        printf ("lineMat ->\n");
+        mat3disp (lineMat.mat, " %10.6f ");
+        printf ("\n");
+        */
+        //mat3 lineMat = mat3mul (aspect.mat, mat3scale_uniform (0.5f));
+
+        // -*- //
+
+        int state = glfwGetMouseButton (window, GLFW_MOUSE_BUTTON_LEFT);
+        if (state == GLFW_PRESS)
+        {
+            deleteBuffer (&flBuffer);
+
+            double xpos, ypos;
+            glfwGetCursorPos (window, &xpos, &ypos);
+
+            vec3 pos = {.v = {xpos, ypos, 1}};
+            mat3 uitoworld = mat3mul (lineMat.inv, uimapping.mat);
+            pos = mat3vecmul (uitoworld, pos);
+            fl.points[0] = vec3drop (pos, 2);
+            fl.oncurve[0] = true;
+
+            createFontline (&fl, &flBuffer, 16);
+        }
+
+        state = glfwGetMouseButton (window, GLFW_MOUSE_BUTTON_RIGHT);
+        if (state == GLFW_PRESS)
+        {
+            deleteBuffer (&flBuffer);
+
+            double xpos, ypos;
+            glfwGetCursorPos (window, &xpos, &ypos);
+
+            vec3 pos = {.v = {xpos, ypos, 1}};
+            mat3 uitoworld = mat3mul (lineMat.inv, uimapping.mat);
+            pos = mat3vecmul (uitoworld, pos);
+            fl.points[0] = vec3drop (pos, 2);
+            fl.oncurve[0] = false;
+
+            createFontline (&fl, &flBuffer, 16);
+        }
+
+        // -*- //
 
         glUseProgram (lineProgram);
-        glUniformMatrix3fv (lineInMat, 1, GL_TRUE, lineMat.m);
+        glUniformMatrix3fv (lineInMat, 1, GL_TRUE, lineMat.mat.m);
         glUniform4fv (lineInColor, 1, lineColor.v);
 
         /*glBindVertexArray (bezierBuffer.vao);

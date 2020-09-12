@@ -8,6 +8,9 @@ typedef struct
     GLuint vbo;
 }   BufferInfo;
 
+extern void createBuffer (BufferInfo* buffer, void* data);
+extern void deleteBuffer (BufferInfo* buffer);
+
 //:{
 typedef struct {} Bezier_N_;
 //:}
