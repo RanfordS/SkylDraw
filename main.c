@@ -19,6 +19,13 @@ void key_callback (GLFWwindow* window,
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
+int clua_test (lua_State* L)
+{
+    printf ("function registered\n");
+    if (lua_isnumber (L, 1))
+        printf ("arg = %i\n", (int)lua_tonumber (L, 1));
+}
+
 int main(void)
 {
     InitError initError = init ();
@@ -33,11 +40,24 @@ int main(void)
     glfwSetKeyCallback (window, key_callback);
     glfwSetErrorCallback (error_callback);
 
+    // -*- //
+
+    lua_register (luaState, "test", clua_test);
+
+    int lua_res = luaL_dofile (luaState, "Fontline.lua");
+
+    if (lua_res != LUA_OK)
+    {
+        printf ("luaerr: %s\n", lua_tostring (luaState, -1));
+    }
+
+    // -*- //
+
     TextObject text;
     createTextObject ("Giffib Callas", &text);
 
     // -*- //
-
+    /*
     Bezier4 bezier = {.points =
     {   {.v = {-1.0f, -1.0f}}
     ,   {.v = {-1.0f,  0.0f}}
@@ -68,7 +88,7 @@ int main(void)
     BufferInfo arcBuffer = {};
     arcBuffer.vertCount = 64;
     createArcBuffer (&arc, &arcBuffer);
-
+    */
     // -*- //
 
     Fontline fl = {};
@@ -97,7 +117,6 @@ int main(void)
         int width, height;
         glfwGetFramebufferSize (window, &width, &height);
         glViewport (0, 0, width, height);
-        //printf ("size: %i %i\n", width, height);
 
         vec2 dim = {.v = {2.0f/width, -2.0f/height}};
 
@@ -107,33 +126,12 @@ int main(void)
             vec2 pos = {.v = {1.0f, -1.0f}};
             Transform trans = transformTranslate (pos);
             uimapping = transformMul (trans, scale);
-
-            /*
-            printf ("dim ->\n");
-            vec2disp (dim, " %f ");
-            printf ("scale ->\n");
-            mat3disp (scale.mat, " %10.6f ");
-            printf ("trans ->\n");
-            mat3disp (trans.mat, " %10.6f ");
-            printf ("uimapping ->\n");
-            mat3disp (uimapping.mat, " %10.6f ");
-            printf ("\n");
-            */
         }
 
         dim.v[1] = -dim.v[1];
         dim = vec2scalarmul (dim, 0.5*(width < height ? width : height));
 
-        //mat3 aspect = mat3scale (dim);
         Transform aspect = transformScale (dim);
-
-        /*
-        mat3 uimapping = {.m =
-            { 2.0f/width, 0.0f,       -1.0f
-            , 0.0f,      -2.0f/height, 1.0f
-            , 0.0f,       0.0f,        1.0f}};
-        */
-
 
         // -*- //
 
@@ -155,13 +153,6 @@ int main(void)
 
         vec4 lineColor = {.v = {1.0f, 1.0f, 1.0f, 1.0f}};
         Transform lineMat = transformMul (aspect, transformScaleUniform (0.5f));
-
-        /*
-        printf ("lineMat ->\n");
-        mat3disp (lineMat.mat, " %10.6f ");
-        printf ("\n");
-        */
-        //mat3 lineMat = mat3mul (aspect.mat, mat3scale_uniform (0.5f));
 
         // -*- //
 
@@ -205,31 +196,24 @@ int main(void)
         glUniformMatrix3fv (lineInMat, 1, GL_TRUE, lineMat.mat.m);
         glUniform4fv (lineInColor, 1, lineColor.v);
 
-        /*glBindVertexArray (bezierBuffer.vao);
+        /*
+        glBindVertexArray (bezierBuffer.vao);
         glDrawArrays (GL_LINE_STRIP, 0, bezierBuffer.vertCount);
         glBindVertexArray (circleBuffer.vao);
         glDrawArrays (GL_LINE_LOOP, 0, circleBuffer.vertCount);
         glBindVertexArray (arcBuffer.vao);
-        glDrawArrays (GL_LINE_STRIP, 0, arcBuffer.vertCount);*/
+        glDrawArrays (GL_LINE_STRIP, 0, arcBuffer.vertCount);
+        */
         glBindVertexArray (flBuffer.vao);
         glDrawArrays (GL_LINE_LOOP, 0, flBuffer.vertCount);
 
         glBindVertexArray (0);
-        /*
-        glColor4f (1.0, 1.0, 1.0, 1.0);
-        glBegin (GL_LINES);
-        for (int i = 0; i < 64; ++i)
-        {
-            glVertex2fv (curve[i].v);
-            glVertex2fv (curve[i+1].v);
-        }
-        glEnd ();
-        */
 
         glUseProgram (0);
         glfwSwapBuffers (window);
     }
 
+    deleteBuffer (&flBuffer);
     deleteTextObject (&text);
 
     quit (0);

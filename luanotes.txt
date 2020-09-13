@@ -1,0 +1,43 @@
+
+
+to do `x = math.floor (1.5)` in lua from c
+
+1. `lua_getglobal (L, "math")`
+  a. verify with `lua_istable (L, -1)`
+
+2. `lua_pushstring (L, "floor")`
+
+3. `lua_gettable (L, -2)`
+   gets the key from the top of the stack
+  a. verify with `lua_isfunction (L, -1)`
+
+4. `lua_pushnumber (L, 1.5)`
+
+5. `lua_call (L, 1, 1)`
+   state, args, rets
+
+6. `lua_setglobal (L, "x")`
+
+7. `lua_pop (L, 1)`
+
+
+1.         2.         3.         4.         5.         6.         7.
+╷         ╷╷         ╷╷         ╷╷         ╷╷         ╷╷         ╷╷         ╷
+├─────────┤├─────────┤├─────────┤├─────────┤├─────────┤├─────────┤╘═════════╛
+│ math {} ││ "floor" ││ floor() ││   1.5   ││    1    ││ math {} │
+╘═════════╛├─────────┤├─────────┤├─────────┤├─────────┤╘═════════╛
+           │ math {} ││ math {} ││ floor() ││ math {} │
+           ╘═════════╛╘═════════╛├─────────┤╘═════════╛
+                                 │ math {} │
+                                 ╘═════════╛
+
+
+
+link function to lua
+
+`int function_pointer (lua_State* L)`
+arguments are provided on the given stack at the bottom
+returns are placed at the top of the stack
+the C function returns the number of arguments
+
+`lua_register (L, "luaname", function_pointer)`
