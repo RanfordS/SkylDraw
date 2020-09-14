@@ -24,6 +24,7 @@ int clua_test (lua_State* L)
     printf ("function registered\n");
     if (lua_isnumber (L, 1))
         printf ("arg = %i\n", (int)lua_tonumber (L, 1));
+    return 0;
 }
 
 int main(void)
@@ -42,7 +43,14 @@ int main(void)
 
     // -*- //
 
-    lua_register (luaState, "test", clua_test);
+    printf ("initial stack size: %i\n", lua_gettop (luaState));
+
+    lua_newtable (luaState);
+    lua_pushcfunction (luaState, clua_test);
+    lua_setfield (luaState, -2, "test");
+    lua_setglobal (luaState, "meta");
+
+    printf ("final stack size: %i\n", lua_gettop (luaState));
 
     int lua_res = luaL_dofile (luaState, "Fontline.lua");
 

@@ -2,6 +2,8 @@ doc/**
 objs/**
 vec.c
 vec.h
+luavec.c
+luavec.h
 bezier.c
 bezier.h
 buffergen.c

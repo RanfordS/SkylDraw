@@ -1,0 +1,228 @@
+#include "core.h"
+//:{
+#define _N_ 2
+#define vec_N_ vec2
+#define vec_N__BIFUNC_ vec2add
+#define vec_N__SCALARFUNC_ vec2scalarmul
+#define vec_N__FLOATFUNC_ vec2sum
+#define vec_N__UNFUNC_ vec2unm
+#define vec_N_dot vec2dot
+#define mat_N_ mat2
+#define M_N_ID M2ID
+#define mat_N__BIFUNC_ mat2add
+#define mat_N__SCALARFUNC_ mat2scalaradd
+#define mat_N__GETFUNC_ mat2getrow
+#define mat_N__SETFUNC_ mat2getrow
+#define mat_N__UNFUNC_ mat2unm
+//:}
+// -*- //
+
+/*:: Converters
+local res = ""
+local args = {"x","y","z","w"}
+
+local subsrc = {}
+for src in source:gmatch ("(//:%(.-//:%))") do
+    table.insert (subsrc, src)
+end
+
+for i = 2, 4 do
+    local subseq = source
+    for j, src in ipairs (subsrc) do
+        local sub = ""
+        for k = 1, i do
+            sub = sub .. src:gsub ("_ARGNAME_", '"'..args[k]..'"')
+                            :gsub ("_ARGNUMB_", tostring (k - 1))
+        end
+        src = src:gsub ("([%(%)%[%]%.%%%*%-%^%+%?])", "%%%1")
+        sub = sub:gsub ("//:[%(%)]", "")
+        subseq = subseq:gsub (src, sub)
+    end
+    res = res .. subseq:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+vec_N_ vec_N__l2c (lua_State* L, int i)
+{
+    vec_N_ a;
+//:{
+#define _ARGNAME_ "x"
+#define _ARGNUMB_ 0
+//:}//:(
+    lua_getfield (L, i, _ARGNAME_);
+    a.v[_ARGNUMB_] = lua_tonumber (L, -1);
+//:)
+    return a;
+}
+
+void vec_N__c2l (lua_State* L, vec_N_ a)
+{
+    lua_getglobal (L, "Vec_N_");
+
+    for (size_t i = 0; i < _N_; ++i)
+        lua_pushnumber (L, a.v[i]);
+
+    lua_call (L, _N_, 1);
+}
+
+// -*- //
+
+mat_N_ mat_N__l2c (lua_State* L, int i)
+{
+    mat_N_ a;
+
+    for (size_t r = 0; r < _N_; ++r)
+    {
+        lua_pushinteger (L, r + 1);
+        lua_gettable (L, i);
+
+        for (size_t c = 0; c < _N_; ++c)
+        {
+            lua_pushinteger (L, c + 1);
+            lua_gettable (L, -2);
+
+            M_N_ID(a,r,c) = lua_tonumber (L, -1);
+        }
+    }
+
+    return a;
+}
+
+void mat_N__c2l (lua_State* L, mat_N_ a)
+{
+    lua_getglobal (L, "Mat_N_");
+
+    lua_newtable (L);
+    for (size_t r = 0; r < _N_; ++r)
+    {
+        lua_newtable (L);
+        for (size_t c = 0; c < _N_; ++c)
+        {
+            lua_pushnumber (L, M_N_ID(a,r,c));
+            lua_settable (L, -2);
+        }
+        lua_settable (L, -2);
+    }
+
+    lua_call (L, 1, 1);
+}
+
+// -*- //
+
+//::
+/*:: Sizes
+local res = ""
+for i = 2, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*//*::
+local res = ""
+local funcs = {"add", "sub", "mul", "div"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_BIFUNC_", f)
+end
+return res
+::*/
+static int l_vec_N__BIFUNC_ (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    vec_N_ b = vec_N__l2c (L, 2);
+    vec_N_ c = vec_N__BIFUNC_ (a, b);
+    vec_N__c2l (L, c);
+    return 1;
+}
+
+//::
+/*:: Float functions
+local res = ""
+local funcs = {"sum", "mag2", "mag"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_FLOATFUNC_", f)
+end
+return res
+::*/
+static int l_vec_N__FLOATFUNC_ (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    float c = vec_N__FLOATFUNC_ (a);
+    lua_pushnumber (L, c);
+    return 1;
+}
+
+//::
+static int l_vec_N_dot (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    vec_N_ b = vec_N__l2c (L, 2);
+    float c = vec_N_dot (a, b);
+    lua_pushnumber (L, c);
+    return 1;
+}
+
+/*:: Unary functions
+local res = ""
+local funcs = {"unm", "norm"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_UNFUNC_", f)
+end
+return res
+::*/
+static int l_vec_N__UNFUNC_ (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    vec_N_ c = vec_N__UNFUNC_ (a);
+    vec_N__c2l (L, c);
+    return 1;
+}
+
+//::
+/*:: Scalar functions
+local res = ""
+local funcs = {"scalaradd", "scalarsub", "scalarmul", "scalardiv", "norms"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_SCALARFUNC_", f)
+end
+return res
+::*/
+static int l_vec_N__SCALARFUNC_ (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    float b = lua_tonumber (L, 2);
+    vec_N_ c = vec_N__SCALARFUNC_ (a, b);
+    vec_N__c2l (L, c);
+    return 1;
+}
+
+//::
+// -*- //
+
+/*:: Scalar functions
+local res = ""
+local funcs = {"add", "sub", "compmul", "compdiv", "mul", "multranspose"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_BIFUNC_", f)
+end
+return res
+::*/
+static int l_mat_N__BIFUNC_ (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
+    mat_N_ b = mat_N__l2c (L, 2);
+    mat_N_ c = mat_N__BIFUNC_ (a, b);
+    mat_N__c2l (L, c);
+    return 1;
+}
+
+//::
+
+// -*- //
+//::
+
+/*
+void initLuaVec (void)
+{
+    lua_newtable (luaState);
+    lua_pushcfunction (luaState, l_vec2add);
+}
+*/

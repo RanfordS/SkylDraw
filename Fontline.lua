@@ -1,4 +1,4 @@
-test (5)
+meta.test (5)
 --[[
 points =
 { Vec (-1.0,-1.0)
