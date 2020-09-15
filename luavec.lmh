@@ -1,0 +1,16 @@
+#include "core.h"
+
+//:{
+#define vec_N_ vec2
+//:}
+/*::
+local res = ""
+for i = 2, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+extern vec_N_ vec_N__l2c (lua_State* L, int i);
+extern void vec_N__c2l (lua_State* L, vec_N_ a);
+//::
+extern void initLuaVec (void);

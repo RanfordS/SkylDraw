@@ -1,4 +1,6 @@
-meta.test (5)
+local v = -Vec2 (2, 3)
+print (v.y)
+
 --[[
 points =
 { Vec (-1.0,-1.0)

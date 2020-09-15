@@ -4,6 +4,7 @@
 #include "lineshader.h"
 #include "buffergen.h"
 #include "transform.h"
+#include "luavec.h"
 
 void error_callback (int error, const char* description)
 {
@@ -36,6 +37,7 @@ int main(void)
         quit (initError);
         return 1;
     }
+    initLuaVec ();
     initLineShader ();
 
     glfwSetKeyCallback (window, key_callback);

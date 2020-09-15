@@ -41,3 +41,65 @@ returns are placed at the top of the stack
 the C function returns the number of arguments
 
 `lua_register (L, "luaname", function_pointer)`
+is a shortcut for
+`lua_pushcfunction (L, function_pointer)`
+`lua_getglobal (L, "luaname")`
+
+
+
+Functions:
+
+
+
+`lua_call (L, int args, int rets)` [-(args+1), +(rets)]
+
+    ╶─────┬──────┬──────┬──────┬──────[-1]───╖
+     .... │ func │ arg1 │ arg2 │ .... │ argN ║
+    ╶─────┴──────┴──────┴──────┴──────┴──────╜
+    >> lua_call (L, N, M);
+    ╶─────┬──────┬──────┬──────[-1]───╖
+     .... │ res1 │ res2 │ .... │ resM ║
+    ╶─────┴──────┴──────┴──────┴──────╜
+
+
+
+`lua_getfield (L, int index, const char* key)` [-(0), +(1)]
+
+    ╶─────[i]────┬──────╖
+     .... │ t={} │ .... ║
+    ╶─────┴──────┴──────╜
+    >> lua_getfield (L, i, k)
+    ╶─────┬──────┬──────[-1]───╖
+     .... │ t={} │ .... │ t[k] ║
+    ╶─────┴──────┴──────┴──────╜
+
+`lua_setfield (L, int index, const char* key)` [-(1), +(0)]
+
+    ╶─────[i]────┬──────[-1]───╖
+     .... │ t={} │ .... │ val  ║
+    ╶─────┴──────┴──────┴──────╜
+    >> lua_getfield (L, i, k)
+    ╶─────┬──────┬──────╖
+     .... │ t={} │ .... ║
+    ╶─────┴──────┴──────╜
+
+`lua_gettable (L, int index)` [-(1), +(1)]
+
+    ╶─────[i]────┬──────[-1]───╖
+     .... │ t={} │ .... │ k    ║
+    ╶─────┴──────┴──────┴──────╜
+    >> lua_gettable (L, i)
+    ╶─────[i]────┬──────[-1]───╖
+     .... │ t={} │ .... │ t[k] ║
+    ╶─────┴──────┴──────┴──────╜
+
+`lua_settable (L, int index)` [-(2), +(0)]
+
+    ╶─────[i]────┬──────[-2]───[-1]───╖
+     .... │ t={} │ .... │ key  │ val  ║
+    ╶─────┴──────┴──────┴──────┴──────╜
+    >> lua_settable (L, i)
+    ╶─────┬──────┬──────╖
+     .... │ t={} │ .... ║
+    ╶─────┴──────┴──────╜
+

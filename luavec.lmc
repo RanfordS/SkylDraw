@@ -1,4 +1,4 @@
-#include "core.h"
+#include "luavec.h"
 //:{
 #define _N_ 2
 #define vec_N_ vec2
@@ -7,13 +7,18 @@
 #define vec_N__FLOATFUNC_ vec2sum
 #define vec_N__UNFUNC_ vec2unm
 #define vec_N_dot vec2dot
+
 #define mat_N_ mat2
 #define M_N_ID M2ID
 #define mat_N__BIFUNC_ mat2add
 #define mat_N__SCALARFUNC_ mat2scalaradd
-#define mat_N__GETFUNC_ mat2getrow
-#define mat_N__SETFUNC_ mat2getrow
+#define mat_N_get_ELEMENT_ mat2getrow
+#define mat_N_set_ELEMENT_ mat2setrow
 #define mat_N__UNFUNC_ mat2unm
+#define mat_N_vecmul mat2vecmul
+
+#define l_vec_N__FUNCNAME_ l_vec_N__BIFUNC_
+#define l_mat_N__FUNCNAME_ l_mat_N__BIFUNC_
 //:}
 // -*- //
 
@@ -107,8 +112,6 @@ void mat_N__c2l (lua_State* L, mat_N_ a)
     lua_call (L, 1, 1);
 }
 
-// -*- //
-
 //::
 /*:: Sizes
 local res = ""
@@ -116,7 +119,10 @@ for i = 2, 4 do
     res = res .. source:gsub ("_N_", tostring (i))
 end
 return res
-::*//*::
+::*/
+// - Vector _N_ - //
+
+/*:: Vector binary functions
 local res = ""
 local funcs = {"add", "sub", "mul", "div"}
 for _, f in ipairs (funcs) do
@@ -134,7 +140,7 @@ static int l_vec_N__BIFUNC_ (lua_State* L)
 }
 
 //::
-/*:: Float functions
+/*:: Vector float functions
 local res = ""
 local funcs = {"sum", "mag2", "mag"}
 for _, f in ipairs (funcs) do
@@ -160,7 +166,7 @@ static int l_vec_N_dot (lua_State* L)
     return 1;
 }
 
-/*:: Unary functions
+/*:: Vector unary functions
 local res = ""
 local funcs = {"unm", "norm"}
 for _, f in ipairs (funcs) do
@@ -177,7 +183,7 @@ static int l_vec_N__UNFUNC_ (lua_State* L)
 }
 
 //::
-/*:: Scalar functions
+/*:: Vector scalar functions
 local res = ""
 local funcs = {"scalaradd", "scalarsub", "scalarmul", "scalardiv", "norms"}
 for _, f in ipairs (funcs) do
@@ -195,9 +201,9 @@ static int l_vec_N__SCALARFUNC_ (lua_State* L)
 }
 
 //::
-// -*- //
+// - Matrix _N_ - //
 
-/*:: Scalar functions
+/*:: Matrix binary functions
 local res = ""
 local funcs = {"add", "sub", "compmul", "compdiv", "mul", "multranspose"}
 for _, f in ipairs (funcs) do
@@ -215,14 +221,131 @@ static int l_mat_N__BIFUNC_ (lua_State* L)
 }
 
 //::
+/*:: Matrix unary functions
+local res = ""
+local funcs = {"unm", "transpose"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_UNFUNC_", f)
+end
+return res
+::*/
+static int l_mat_N__UNFUNC_ (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
+    mat_N_ c = mat_N__UNFUNC_ (a);
+    mat_N__c2l (L, c);
+    return 1;
+}
 
-// -*- //
 //::
+/*:: Matrix scalar functions
+local res = ""
+local funcs = {"scalaradd", "scalarsub", "scalarmul", "scalardiv"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_SCALARFUNC_", f)
+end
+return res
+::*/
+static int l_mat_N__SCALARFUNC_ (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
+    float b = lua_tonumber (L, 2);
+    mat_N_ c = mat_N__SCALARFUNC_ (a, b);
+    mat_N__c2l (L, c);
+    return 1;
+}
 
-/*
+//::
+/*:: Matrix get/set functions
+local res = ""
+local funcs = {"col", "row"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_ELEMENT_", f)
+end
+return res
+::*/
+static int l_mat_N_get_ELEMENT_ (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
+    int i = lua_tointeger (L, 2);
+    vec_N_ c = mat_N_get_ELEMENT_ (a, i);
+    vec_N__c2l (L, c);
+    return 1;
+}
+
+static int l_mat_N_set_ELEMENT_ (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
+    int i = lua_tointeger (L, 2);
+    vec_N_ v = vec_N__l2c (L, 3);
+    mat_N_ c = mat_N_set_ELEMENT_ (a, i, v);
+    mat_N__c2l (L, c);
+    return 1;
+}
+
+//::
+static int l_mat_N_vecmul (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
+    vec_N_ b = vec_N__l2c (L, 2);
+    vec_N_ c = mat_N_vecmul (a, b);
+    vec_N__c2l (L, c);
+    return 1;
+}
+
+//::
+// -*- //
+
 void initLuaVec (void)
 {
+/*::
+local res = ""
+for i = 2, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+    // - Vector _N_ - //
+
     lua_newtable (luaState);
-    lua_pushcfunction (luaState, l_vec2add);
+
+/*:: Common vector functions
+local res = ""
+local funcs = {"add", "sub", "mul", "div", "unm", "sum", "dot", "mag2", "mag",
+               "scalaradd", "scalarsub", "scalarmul", "scalardiv",
+               "norm", "norms"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_FUNCNAME_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_vec_N__FUNCNAME_);
+        lua_setfield (luaState, -2, "_FUNCNAME_");
+
+//::
+    lua_setglobal (luaState, "Vec_N_");
+
+    // - Matrix _N_ - //
+
+    lua_newtable (luaState);
+
+/*:: Common matrix functions
+local res = ""
+local funcs = {"add", "sub", "compmul", "compdiv", "unm", "mul", "multranspose",               "scalaradd", "scalarsub", "scalarmul", "scalardiv",
+               "vecmul", "getrow", "getcol", "setrow", "setcol", "transpose"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_FUNCNAME_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_mat_N__FUNCNAME_);
+        lua_setfield (luaState, -2, "_FUNCNAME_");
+
+//::
+    lua_setglobal (luaState, "Mat_N_");
+
+//::
+    // -*- //
+
+    luaL_dofile (luaState, "luavecmeta.lua");
 }
-*/
