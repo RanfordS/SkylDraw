@@ -52,6 +52,10 @@ int main(void)
     lua_setfield (luaState, -2, "test");
     lua_setglobal (luaState, "meta");
 
+    int* userdatatest = lua_newuserdata (luaState, sizeof (int));
+    *userdatatest = 5;
+    lua_setglobal (luaState, "userdata");
+
     printf ("final stack size: %i\n", lua_gettop (luaState));
 
     int lua_res = luaL_dofile (luaState, "Fontline.lua");

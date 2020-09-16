@@ -56,6 +56,7 @@ vec_N_ vec_N__l2c (lua_State* L, int i)
 //:}//:(
     lua_getfield (L, i, _ARGNAME_);
     a.v[_ARGNUMB_] = lua_tonumber (L, -1);
+    lua_pop (L, 1);
 //:)
     return a;
 }
@@ -87,7 +88,10 @@ mat_N_ mat_N__l2c (lua_State* L, int i)
             lua_gettable (L, -2);
 
             M_N_ID(a,r,c) = lua_tonumber (L, -1);
+            lua_pop (L, 1);
         }
+
+        lua_pop (L, 1);
     }
 
     return a;
@@ -291,6 +295,87 @@ static int l_mat_N_vecmul (lua_State* L)
     vec_N_ c = mat_N_vecmul (a, b);
     vec_N__c2l (L, c);
     return 1;
+}
+
+//::
+// -*- //
+
+size_t lua_objlen (lua_State* L, int index);
+/*:: Sizes
+local res = ""
+for i = 2, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+typedef struct
+{   size_t count;
+    vec_N_ verts[];
+}   vec_N_array;
+
+#define VEC_N_ARRAY_SIZE(n) (sizeof (size_t) + n*sizeof (vec_N_))
+
+static int l_vec_N_array_l2c (lua_State* L)
+{
+    size_t count = lua_objlen (L, 1);
+
+    lua_newtable (L);
+
+    vec_N_array* array = lua_newuserdata (L, VEC_N_ARRAY_SIZE(count));
+    //┎1─────┬2─────┬3─────╖
+    //┃ arg1 │ ret1 │ usrd ║
+    //┖────-3┴────-2┴────-1╜
+    array->count = count;
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        lua_pushinteger (L, i + 1);
+        lua_gettable (L, 1);
+
+        array->verts[i] = vec_N__l2c (L, -1);
+        lua_pop (L, 1);
+    }
+
+    lua_setfield (L, -2, "data");
+
+    lua_getglobal (L, "Vec_N_Array");
+    lua_getfield (L, -1, "meta");
+    lua_setmetatable (L, -3);
+    lua_pop (L, 1);
+
+    return 1;
+}
+
+static int l_vec_N_array_c2l (lua_State* L)
+{
+    vec_N_array* array = lua_touserdata (L, 1);
+    //
+    return 1;
+}
+
+static int l_vec_N_array_length (lua_State* L)
+{
+    vec_N_array* array = lua_touserdata (L, 1);
+    lua_pushinteger (L, array->count);
+    return 1;
+}
+
+static int l_vec_N_array_geti (lua_State* L)
+{
+    vec_N_array* array = lua_touserdata (L, 1);
+    size_t i = lua_tointeger (L, 2) - 1;
+
+    vec_N__c2l (L, array->verts[i]);
+    return 1;
+}
+
+static int l_vec_N_array_seti (lua_State* L)
+{
+    vec_N_array* array = lua_touserdata (L, 1);
+    size_t i = lua_tointeger (L, 2) - 1;
+
+    array->verts[i] = vec_N__l2c (L, 3);
+    return 0;
 }
 
 //::
