@@ -1,7 +1,9 @@
+#pragma once
 #include "core.h"
 
 //:{
 #define vec_N_ vec2
+#define mat_N_ mat2
 //:}
 /*::
 local res = ""
@@ -12,5 +14,12 @@ return res
 ::*/
 extern vec_N_ vec_N__l2c (lua_State* L, int i);
 extern void vec_N__c2l (lua_State* L, vec_N_ a);
+extern mat_N_ mat_N__l2c (lua_State* L, int i);
+extern void mat_N__c2l (lua_State* L, mat_N_ a);
+
+typedef struct
+{   size_t count;
+    vec_N_ verts[];
+}   vec_N_array;
 //::
 extern void initLuaVec (void);

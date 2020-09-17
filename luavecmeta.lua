@@ -1,12 +1,20 @@
 --[[ luavecmeta.lua ]]--
 
-Vec2.meta = {__index = Vec2}
-Vec3.meta = {__index = Vec3}
-Vec4.meta = {__index = Vec4}
+local Vecs = {Vec2, Vec3, Vec4}
+local Mats = {Mat2, Mat3, Mat4}
+local Arrays = {Vec2Array, Vec3Array, Vec4Array}
 
-Mat2.meta = {__index = Mat2}
-Mat3.meta = {__index = Mat3}
-Mat4.meta = {__index = Mat4}
+for _, Vec in ipairs (Vecs) do
+    Vec.meta = {__index = Vec}
+end
+
+for _, Mat in ipairs (Mats) do
+    Mat.meta = {__index = Mat}
+end
+
+for _, Array in ipairs (Arrays) do
+    Array.meta = {}
+end
 
 -- /*/ --
 
@@ -25,40 +33,46 @@ function Vec4.new (x, y, z, w)
     return setmetatable (new, Vec4.meta)
 end
 
-function Mat2.new (new)
-    assert (#new == 2, "incorrect number of rows")
-    for i = 1, 2 do
-        assert (#new[i] == 2, "incorrect number of cols in row".. i)
+-- /*/ --
+
+for n, Mat in ipairs (Mats) do
+    n = n + 1
+    function Mat.new (new)
+        assert (#new == n, "incorrect number of rows")
+        for i = 1, n do
+            assert (#new[i] == n, "incorrect number of cols in row".. i)
+        end
+        return setmetatable (new, Mat.meta)
     end
-    return setmetatable (new, Mat2.meta)
 end
 
-function Mat3.new (new)
-    assert (#new == 3, "incorrect number of rows")
-    for i = 1, 3 do
-        assert (#new[i] == 3, "incorrect number of cols in row".. i)
+-- /*/ --
+
+for n, Array in ipairs (Arrays) do
+    local Vec = Vecs[n]
+    function Array.new (new)
+        for i, v in ipairs (new) do
+            assert (Vec.is (v), "all elements must be vector ".. tostring (n+1))
+        end
+        return Array.pack (new)
     end
-    return setmetatable (new, Mat3.meta)
 end
 
-function Mat4.new (new)
-    assert (#new == 4, "incorrect number of rows")
-    for i = 1, 4 do
-        assert (#new[i] == 4, "incorrect number of cols in row".. i)
-    end
-    return setmetatable (new, Mat4.meta)
-end
+-- /*/ --
 
 local metaclass = {}
 function metaclass.__call (class, ...)
     return class.new (...)
 end
-setmetatable (Vec2, metaclass)
-setmetatable (Vec3, metaclass)
-setmetatable (Vec4, metaclass)
-setmetatable (Mat2, metaclass)
-setmetatable (Mat3, metaclass)
-setmetatable (Mat4, metaclass)
+for _, Vec in ipairs (Vecs) do
+    setmetatable (Vec, metaclass)
+end
+for _, Mat in ipairs (Mats) do
+    setmetatable (Mat, metaclass)
+end
+for _, Array in ipairs (Arrays) do
+    setmetatable (Array, metaclass)
+end
 
 -- /*/ --
 
@@ -76,7 +90,7 @@ end
 
 -- /*/ --
 
-for _, Vec in ipairs {Vec2, Vec3, Vec4} do
+for _, Vec in ipairs (Vecs) do
     -- helper
     function Vec.is (v)
         return type (v) == "table" and getmetatable (v) == Vec.meta
@@ -175,12 +189,9 @@ end
 
 -- /*/ --
 
-local VecMatch = {}
-VecMatch[Mat2] = Vec2
-VecMatch[Mat3] = Vec3
-VecMatch[Mat4] = Vec4
-
-for _, Mat in ipairs {Mat2, Mat3, Mat4} do
+for n, Mat in ipairs (Mats) do
+    local Vec = Vecs[n]
+    local Array = Arrays[n]
     -- helper
     function Mat.is (v)
         return type (v) == "table" and getmetatable (v) == Mat.meta
@@ -214,8 +225,10 @@ for _, Mat in ipairs {Mat2, Mat3, Mat4} do
             return Mat.scalarmul (b, a)
         elseif type (b) == "number" then
             return Mat.scalarmul (a, b)
-        elseif VecMatch[Mat].is (b) then
+        elseif Vec.is (b) then
             return Mat.vecmul (a, b)
+        elseif Array.is (b) then
+            return Mat.vecarraymul (a, b)
         end
         -- general case
         assert (Mat.is (a) and Mat.is (b),
@@ -223,3 +236,46 @@ for _, Mat in ipairs {Mat2, Mat3, Mat4} do
         return Mat.add (a, b)
     end
 end
+
+-- /*/ --
+
+for n, Array in ipairs (Arrays) do
+    local Vec = Vecs[n]
+    -- helper
+    function Array.is (v)
+        return type (v) == "table" and getmetatable (v) == Array.meta
+    end
+    -- metatable events
+    function Array.meta.__len (array)
+        return Array.length (array)
+    end
+    function Array.meta.__index (array, key)
+        for k, v in pairs (Array) do
+            if key == k then
+                return v
+            end
+        end
+        print ("key:", key, type (key))
+        assert (type (key) == "number", "invalid index")
+        assert ((0 < key) and (key <= #array), "index is out of range")
+        return Array.geti (array, key)
+    end
+    function Array.meta.__newindex (array, key, value)
+        assert (type (key) == number, "invalid index")
+        assert (0 < key and key <= #array, "index is out of range")
+        assert (Vec.is (value), "cannot assign non-vector to vector array")
+        return Array.seti (array, key, value)
+    end
+    function Array.meta.__ipairs (array)
+        local len = Array.length (array)
+        local function iterator (array, i)
+            i = i + 1
+            if i > len then
+                return
+            end
+            return i, Array.geti (array, i)
+        end
+        return iterator, array, 0
+    end
+end
+

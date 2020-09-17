@@ -298,26 +298,27 @@ static int l_mat_N_vecmul (lua_State* L)
 }
 
 //::
-// -*- //
+// - Vector Arrays - //
 
-size_t lua_objlen (lua_State* L, int index);
-/*:: Sizes
+//size_t lua_objlen (lua_State* L, int index);
+/*:: Vector Array Sizes
 local res = ""
 for i = 2, 4 do
     res = res .. source:gsub ("_N_", tostring (i))
 end
 return res
 ::*/
+//:{
 typedef struct
 {   size_t count;
     vec_N_ verts[];
 }   vec_N_array;
-
+//:}
 #define VEC_N_ARRAY_SIZE(n) (sizeof (size_t) + n*sizeof (vec_N_))
 
-static int l_vec_N_array_l2c (lua_State* L)
+static int l_vec_N_array_pack (lua_State* L)
 {
-    size_t count = lua_objlen (L, 1);
+    size_t count = lua_rawlen (L, 1);
 
     lua_newtable (L);
 
@@ -336,33 +337,44 @@ static int l_vec_N_array_l2c (lua_State* L)
         lua_pop (L, 1);
     }
 
-    lua_setfield (L, -2, "data");
+    lua_setfield (L, 2, "data");
 
     lua_getglobal (L, "Vec_N_Array");
     lua_getfield (L, -1, "meta");
-    lua_setmetatable (L, -3);
+    lua_setmetatable (L, 2);
     lua_pop (L, 1);
 
     return 1;
 }
 
-static int l_vec_N_array_c2l (lua_State* L)
+static int l_vec_N_array_unpack (lua_State* L)
 {
-    vec_N_array* array = lua_touserdata (L, 1);
-    //
+    lua_getfield (L, 1, "data");
+    vec_N_array* array = lua_touserdata (L, -1);
+
+    lua_newtable (L);
+    for (size_t i = 0; i < array->count; ++i)
+    {
+        lua_pushinteger (L, i + 1);
+        vec_N__c2l (L, array->verts[i]);
+        lua_settable (L, -2);
+    }
+
     return 1;
 }
 
 static int l_vec_N_array_length (lua_State* L)
 {
-    vec_N_array* array = lua_touserdata (L, 1);
+    lua_getfield (L, 1, "data");
+    vec_N_array* array = lua_touserdata (L, -1);
     lua_pushinteger (L, array->count);
     return 1;
 }
 
 static int l_vec_N_array_geti (lua_State* L)
 {
-    vec_N_array* array = lua_touserdata (L, 1);
+    lua_getfield (L, 1, "data");
+    vec_N_array* array = lua_touserdata (L, -1);
     size_t i = lua_tointeger (L, 2) - 1;
 
     vec_N__c2l (L, array->verts[i]);
@@ -371,14 +383,99 @@ static int l_vec_N_array_geti (lua_State* L)
 
 static int l_vec_N_array_seti (lua_State* L)
 {
-    vec_N_array* array = lua_touserdata (L, 1);
+    lua_getfield (L, 1, "data");
+    vec_N_array* array = lua_touserdata (L, -1);
     size_t i = lua_tointeger (L, 2) - 1;
 
     array->verts[i] = vec_N__l2c (L, 3);
     return 0;
 }
 
+static int l_mat_N_vecarraymul (lua_State* L)
+{
+    mat_N_ mat = mat_N__l2c (L, 1);
+    lua_getfield (L, 2, "data");
+    vec_N_array* array = lua_touserdata (L, -1);
+
+    for (size_t i = 0; i < array->count; ++i)
+    {
+        array->verts[i] = mat_N_vecmul (mat, array->verts[i]);
+    }
+
+    return 0;
+}
+
 //::
+// -*- //
+/*:: Sizes
+local res = ""
+for i = 2, 3 do
+    res = res .. source:gsub ("_N_", tostring (i))
+                       :gsub ("_M_", tostring (i + 1))
+end
+return res
+::*/
+//:{
+#define vec_M_ vec3
+#define VEC_M_ARRAY_SIZE(n) (sizeof (size_t) + n*sizeof (vec_M_))
+#define vec_N_homogeneous vec2homogeneous
+#define vec_M_drop vec3drop
+typedef struct
+{   size_t count;
+    vec_M_ verts[];
+}   vec_M_array;
+//:}
+static int l_vec_N_array_homogeneous (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    vec_N_array* source = lua_touserdata (L, 2);
+
+    lua_newtable (L);
+
+    vec_M_array* result = lua_newuserdata (L, VEC_M_ARRAY_SIZE(source->count));
+    result->count = source->count;
+
+    for (size_t i = 0; i < source->count; ++i)
+    {
+        result->verts[i] = vec_N_homogeneous (source->verts[i]);
+    }
+
+    lua_setfield (L, 2, "data");
+
+    lua_getglobal (L, "Vec_M_Array");
+    lua_getfield (L, 4, "meta");
+    lua_setmetatable (L, 3);
+    lua_pop (L, 1);
+
+    return 1;
+}
+
+static int l_vec_M_array_droplast (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    vec_M_array* source = lua_touserdata (L, 2);
+
+    lua_newtable (L);
+
+    vec_N_array* result = lua_newuserdata (L, VEC_N_ARRAY_SIZE(source->count));
+    result->count = source->count;
+
+    for (size_t i = 0; i < source->count; ++i)
+    {
+        result->verts[i] = vec_M_drop (source->verts[i], _N_);
+    }
+
+    lua_setfield (L, 2, "data");
+
+    lua_getglobal (L, "Vec_M_Array");
+    lua_getfield (L, 4, "meta");
+    lua_setmetatable (L, 3);
+    lua_pop (L, 1);
+
+    return 1;
+}
+//::
+
 // -*- //
 
 void initLuaVec (void)
@@ -416,8 +513,10 @@ return res
 
 /*:: Common matrix functions
 local res = ""
-local funcs = {"add", "sub", "compmul", "compdiv", "unm", "mul", "multranspose",               "scalaradd", "scalarsub", "scalarmul", "scalardiv",
-               "vecmul", "getrow", "getcol", "setrow", "setcol", "transpose"}
+local funcs = {"add", "sub", "compmul", "compdiv", "unm", "mul", "multranspose",
+               "scalaradd", "scalarsub", "scalarmul", "scalardiv",
+               "vecmul", "getrow", "getcol", "setrow", "setcol", "transpose",
+               "vecarraymul"}
 for _, f in ipairs (funcs) do
     res = res .. source:gsub ("_FUNCNAME_", f)
 end
@@ -428,6 +527,26 @@ return res
 
 //::
     lua_setglobal (luaState, "Mat_N_");
+
+    // - Vector _N_ Array - //
+
+    lua_newtable (luaState);
+//:{
+#define l_vec_N_array__FUNCNAME_ l_vec_N_array_pack
+//:}
+/*:: Vector array functions
+local res = ""
+local funcs = {"pack", "unpack", "length", "geti", "seti"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_FUNCNAME_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_vec_N_array__FUNCNAME_);
+        lua_setfield (luaState, -2, "_FUNCNAME_");
+
+//::
+    lua_setglobal (luaState, "Vec_N_Array");
 
 //::
     // -*- //

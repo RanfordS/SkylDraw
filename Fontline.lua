@@ -6,18 +6,21 @@ print (tostring (v))
 local A = Mat2 {{1,0},{0,1}}
 print (A*v)
 
---[[
-points = VecArray
-{ Vec (-1.0,-1.0)
-, Vec (-0.5,-1.0)
-, Vec ( 1.0,-1.0)
-, Vec ( 1.0, 1.0)
-, Vec ( 0.5, 1.0)
-, Vec (-0.5, 1.0)
-, Vec (-1.0, 1.0)
-, Vec (-1.0, 0.0)
+points = Vec2Array
+{ Vec2 (-1.0,-1.0)
+, Vec2 (-0.5,-1.0)
+, Vec2 ( 1.0,-1.0)
+, Vec2 ( 1.0, 1.0)
+, Vec2 ( 0.5, 1.0)
+, Vec2 (-0.5, 1.0)
+, Vec2 (-1.0, 1.0)
+, Vec2 (-1.0, 0.0)
 }
 
+for i, point in ipairs (points) do
+    print (i, point)
+end
+--[[
 points = VecArray
 { {-1.0,-1.0}
 , {-0.5,-1.0}
