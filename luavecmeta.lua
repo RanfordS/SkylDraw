@@ -90,14 +90,16 @@ end
 
 -- /*/ --
 
-for _, Vec in ipairs (Vecs) do
+for n, Vec in ipairs (Vecs) do
+    local VecM = Vecs[n-1]
+    local VecP = Vecs[n+1]
     -- helper
     function Vec.is (v)
         return type (v) == "table" and getmetatable (v) == Vec.meta
     end
     -- tostring
     function Vec.meta.__tostring (a)
-        local list = {a:unpack ()}
+        local list = {Vec.unpack (a)}
         for i, v in ipairs (list) do
             list[i] = tostring (v)
         end
@@ -144,7 +146,7 @@ for _, Vec in ipairs (Vecs) do
     function Vec.meta.__div (a, b)
         -- scalar cases
         if     type (a) == "number" then
-            local list = {b:unpack ()}
+            local list = {Vec.unpack (b)}
             for i, v in ipairs (list) do
                 list[i] = a/v
             end
@@ -190,8 +192,12 @@ end
 -- /*/ --
 
 for n, Mat in ipairs (Mats) do
-    local Vec = Vecs[n]
-    local Array = Arrays[n]
+    local VecM = Vecs[n-1]
+    local Vec  = Vecs[n]
+    local VecP = Vecs[n+1]
+    local ArrayM = Arrays[n-1]
+    local Array  = Arrays[n]
+    local ArrayP = Arrays[n+1]
     -- helper
     function Mat.is (v)
         return type (v) == "table" and getmetatable (v) == Mat.meta
@@ -225,10 +231,24 @@ for n, Mat in ipairs (Mats) do
             return Mat.scalarmul (b, a)
         elseif type (b) == "number" then
             return Mat.scalarmul (a, b)
+
         elseif Vec.is (b) then
             return Mat.vecmul (a, b)
+        elseif VecM then
+            if VecM.is (b) then
+                local bp = Vec.homogeneous (b)
+                bp = Mat.vecmul (a, bp)
+                return Vec.drop (bp)
+            end
+
         elseif Array.is (b) then
             return Mat.vecarraymul (a, b)
+        elseif ArrayM then
+            if ArrayM.is (b) then
+                local bp = ArrayM.homogeneous (b)
+                bp = Mat.vecarraymul (a, bp)
+                return Array.droplast (bp)
+            end
         end
         -- general case
         assert (Mat.is (a) and Mat.is (b),
@@ -255,7 +275,6 @@ for n, Array in ipairs (Arrays) do
                 return v
             end
         end
-        print ("key:", key, type (key))
         assert (type (key) == "number", "invalid index")
         assert ((0 < key) and (key <= #array), "index is out of range")
         return Array.geti (array, key)

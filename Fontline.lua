@@ -1,9 +1,11 @@
 local u = Vec2 (1, 1)
+print (u, tostring (u))
 local v = -Vec2 (2, 3)
+print (v, tostring (v))
 v = 1/(u + v)
-print (tostring (v))
+print (v, tostring (v))
 
-local A = Mat2 {{1,0},{0,1}}
+local A = Mat2 {{1,0},{0,-1}}
 print (A*v)
 
 points = Vec2Array
@@ -17,7 +19,7 @@ points = Vec2Array
 , Vec2 (-1.0, 0.0)
 }
 
-for i, point in ipairs (points) do
+for i, point in ipairs (A*points) do
     print (i, point)
 end
 --[[

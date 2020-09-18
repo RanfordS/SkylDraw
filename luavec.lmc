@@ -79,13 +79,11 @@ mat_N_ mat_N__l2c (lua_State* L, int i)
 
     for (size_t r = 0; r < _N_; ++r)
     {
-        lua_pushinteger (L, r + 1);
-        lua_gettable (L, i);
+        lua_geti (L, i, r + 1);
 
         for (size_t c = 0; c < _N_; ++c)
         {
-            lua_pushinteger (L, c + 1);
-            lua_gettable (L, -2);
+            lua_geti (L, -1, c + 1);
 
             M_N_ID(a,r,c) = lua_tonumber (L, -1);
             lua_pop (L, 1);
@@ -105,12 +103,13 @@ void mat_N__c2l (lua_State* L, mat_N_ a)
     for (size_t r = 0; r < _N_; ++r)
     {
         lua_newtable (L);
+
         for (size_t c = 0; c < _N_; ++c)
         {
             lua_pushnumber (L, M_N_ID(a,r,c));
-            lua_settable (L, -2);
+            lua_seti (L, -2, c + 1);
         }
-        lua_settable (L, -2);
+        lua_seti (L, -2, r + 1);
     }
 
     lua_call (L, 1, 1);
@@ -402,7 +401,9 @@ static int l_mat_N_vecarraymul (lua_State* L)
         array->verts[i] = mat_N_vecmul (mat, array->verts[i]);
     }
 
-    return 0;
+    lua_pop (L, 1);
+
+    return 1;
 }
 
 //::
@@ -430,7 +431,7 @@ static int l_vec_N_array_homogeneous (lua_State* L)
     lua_getfield (L, 1, "data");
     vec_N_array* source = lua_touserdata (L, 2);
 
-    lua_newtable (L);
+    lua_createtable (L, source->count, 0);
 
     vec_M_array* result = lua_newuserdata (L, VEC_M_ARRAY_SIZE(source->count));
     result->count = source->count;
@@ -455,7 +456,7 @@ static int l_vec_M_array_droplast (lua_State* L)
     lua_getfield (L, 1, "data");
     vec_M_array* source = lua_touserdata (L, 2);
 
-    lua_newtable (L);
+    lua_createtable (L, source->count, 0);
 
     vec_N_array* result = lua_newuserdata (L, VEC_N_ARRAY_SIZE(source->count));
     result->count = source->count;
@@ -474,6 +475,50 @@ static int l_vec_M_array_droplast (lua_State* L)
 
     return 1;
 }
+//::
+
+// - Vec Semicommon - //
+
+//:{
+#define vec_N_raise vec2raise
+vec_M_ vec_M__l2c (lua_State* L, int i);
+vec_M_ vec_M__c2l (lua_State* L, vec_M_ v);
+//:}
+/*:: Vector semicommon
+local res = ""
+for i = 2, 3 do
+    res = res .. source:gsub ("_N_", tostring (i))
+                       :gsub ("_M_", tostring (i + 1))
+end
+return res
+::*/
+static int l_vec_N_raise (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    int i = lua_tointeger (L, 2);
+    float b = lua_tonumber (L, 3);
+    vec_M_ c = vec_N_raise (a, i, b);
+    vec_M__c2l (L, c);
+    return 1;
+}
+
+static int l_vec_N_homogeneous (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    vec_M_ c = vec_N_homogeneous (a);
+    vec_M__c2l (L, c);
+    return 1;
+}
+
+static int l_vec_M_drop (lua_State* L)
+{
+    vec_M_ a = vec_M__l2c (L, 1);
+    int i = lua_tointeger (L, 2);
+    vec_N_ b = vec_M_drop (a, i);
+    vec_N__c2l (L, b);
+    return 1;
+}
+
 //::
 
 // -*- //
@@ -549,6 +594,36 @@ return res
     lua_setglobal (luaState, "Vec_N_Array");
 
 //::
+    // - Vector 2 Semicommon - //
+
+    lua_getglobal (luaState, "Vec2");
+
+/*:: Vector semicommon
+local res = ""
+for i = 2, 3 do
+    res = res .. source:gsub ("_N_", tostring (i))
+                       :gsub ("_M_", tostring (i + 1))
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_vec_N_raise);
+        lua_setfield (luaState, -2, "raise");
+
+        lua_pushcfunction (luaState, l_vec_N_homogeneous);
+        lua_setfield (luaState, -2, "homogeneous");
+
+    lua_setglobal (luaState, "Vec_N_");
+
+    // - Vector _M_ Semicommon - //
+
+    lua_getglobal (luaState, "Vec_M_");
+
+        lua_pushcfunction (luaState, l_vec_M_drop);
+        lua_setfield (luaState, -2, "drop");
+
+//::
+    lua_setglobal (luaState, "Vec4");
+
     // -*- //
 
     luaL_dofile (luaState, "luavecmeta.lua");

@@ -20,14 +20,6 @@ void key_callback (GLFWwindow* window,
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-int clua_test (lua_State* L)
-{
-    printf ("function registered\n");
-    if (lua_isnumber (L, 1))
-        printf ("arg = %i\n", (int)lua_tonumber (L, 1));
-    return 0;
-}
-
 int main(void)
 {
     InitError initError = init ();
@@ -44,19 +36,6 @@ int main(void)
     glfwSetErrorCallback (error_callback);
 
     // -*- //
-
-    printf ("initial stack size: %i\n", lua_gettop (luaState));
-
-    lua_newtable (luaState);
-    lua_pushcfunction (luaState, clua_test);
-    lua_setfield (luaState, -2, "test");
-    lua_setglobal (luaState, "meta");
-
-    int* userdatatest = lua_newuserdata (luaState, sizeof (int));
-    *userdatatest = 5;
-    lua_setglobal (luaState, "userdata");
-
-    printf ("final stack size: %i\n", lua_gettop (luaState));
 
     int lua_res = luaL_dofile (luaState, "Fontline.lua");
 
