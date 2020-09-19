@@ -223,8 +223,8 @@ for n, Mat in ipairs (Mats) do
         end
         -- general case
         assert (Mat.is (a) and Mat.is (b),
-            "matrix addition called unsupported types")
-        return Mat.add (a, b)
+            "matrix subtraction called unsupported types")
+        return Mat.sub (a, b)
     end
     function Mat.meta.__mul (a, b)
         if     type (a) == "number" then
@@ -234,26 +234,22 @@ for n, Mat in ipairs (Mats) do
 
         elseif Vec.is (b) then
             return Mat.vecmul (a, b)
-        elseif VecM then
-            if VecM.is (b) then
-                local bp = Vec.homogeneous (b)
-                bp = Mat.vecmul (a, bp)
-                return Vec.drop (bp)
-            end
+        elseif VecM and VecM.is (b) then
+            local bp = Vec.homogeneous (b)
+            bp = Mat.vecmul (a, bp)
+            return Vec.drop (bp)
 
         elseif Array.is (b) then
             return Mat.vecarraymul (a, b)
-        elseif ArrayM then
-            if ArrayM.is (b) then
-                local bp = ArrayM.homogeneous (b)
-                bp = Mat.vecarraymul (a, bp)
-                return Array.droplast (bp)
-            end
+        elseif ArrayM and ArrayM.is (b) then
+            local bp = ArrayM.homogeneous (b)
+            bp = Mat.vecarraymul (a, bp)
+            return Array.droplast (bp)
         end
         -- general case
         assert (Mat.is (a) and Mat.is (b),
-            "matrix addition called unsupported types")
-        return Mat.add (a, b)
+            "matrix multiplication called unsupported types")
+        return Mat.mul (a, b)
     end
 end
 

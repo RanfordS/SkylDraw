@@ -16,12 +16,11 @@
 #define mat_N_set_ELEMENT_ mat2setrow
 #define mat_N__UNFUNC_ mat2unm
 #define mat_N_vecmul mat2vecmul
+#define mat_N_det mat2det
 
 #define l_vec_N__FUNCNAME_ l_vec_N__BIFUNC_
 #define l_mat_N__FUNCNAME_ l_mat_N__BIFUNC_
 //:}
-// -*- //
-
 /*:: Converters
 local res = ""
 local args = {"x","y","z","w"}
@@ -47,6 +46,8 @@ for i = 2, 4 do
 end
 return res
 ::*/
+// - Vector _N_ Converter - //
+
 vec_N_ vec_N__l2c (lua_State* L, int i)
 {
     vec_N_ a;
@@ -71,7 +72,7 @@ void vec_N__c2l (lua_State* L, vec_N_ a)
     lua_call (L, _N_, 1);
 }
 
-// -*- //
+// - Matrix _N_ Converters - //
 
 mat_N_ mat_N__l2c (lua_State* L, int i)
 {
@@ -88,7 +89,6 @@ mat_N_ mat_N__l2c (lua_State* L, int i)
             M_N_ID(a,r,c) = lua_tonumber (L, -1);
             lua_pop (L, 1);
         }
-
         lua_pop (L, 1);
     }
 
@@ -103,7 +103,6 @@ void mat_N__c2l (lua_State* L, mat_N_ a)
     for (size_t r = 0; r < _N_; ++r)
     {
         lua_newtable (L);
-
         for (size_t c = 0; c < _N_; ++c)
         {
             lua_pushnumber (L, M_N_ID(a,r,c));
@@ -111,9 +110,10 @@ void mat_N__c2l (lua_State* L, mat_N_ a)
         }
         lua_seti (L, -2, r + 1);
     }
-
     lua_call (L, 1, 1);
 }
+
+// -*- //
 
 //::
 /*:: Sizes
@@ -137,6 +137,7 @@ static int l_vec_N__BIFUNC_ (lua_State* L)
 {
     vec_N_ a = vec_N__l2c (L, 1);
     vec_N_ b = vec_N__l2c (L, 2);
+
     vec_N_ c = vec_N__BIFUNC_ (a, b);
     vec_N__c2l (L, c);
     return 1;
@@ -154,6 +155,7 @@ return res
 static int l_vec_N__FLOATFUNC_ (lua_State* L)
 {
     vec_N_ a = vec_N__l2c (L, 1);
+
     float c = vec_N__FLOATFUNC_ (a);
     lua_pushnumber (L, c);
     return 1;
@@ -164,6 +166,7 @@ static int l_vec_N_dot (lua_State* L)
 {
     vec_N_ a = vec_N__l2c (L, 1);
     vec_N_ b = vec_N__l2c (L, 2);
+
     float c = vec_N_dot (a, b);
     lua_pushnumber (L, c);
     return 1;
@@ -180,6 +183,7 @@ return res
 static int l_vec_N__UNFUNC_ (lua_State* L)
 {
     vec_N_ a = vec_N__l2c (L, 1);
+
     vec_N_ c = vec_N__UNFUNC_ (a);
     vec_N__c2l (L, c);
     return 1;
@@ -198,6 +202,7 @@ static int l_vec_N__SCALARFUNC_ (lua_State* L)
 {
     vec_N_ a = vec_N__l2c (L, 1);
     float b = lua_tonumber (L, 2);
+
     vec_N_ c = vec_N__SCALARFUNC_ (a, b);
     vec_N__c2l (L, c);
     return 1;
@@ -218,6 +223,7 @@ static int l_mat_N__BIFUNC_ (lua_State* L)
 {
     mat_N_ a = mat_N__l2c (L, 1);
     mat_N_ b = mat_N__l2c (L, 2);
+
     mat_N_ c = mat_N__BIFUNC_ (a, b);
     mat_N__c2l (L, c);
     return 1;
@@ -226,7 +232,7 @@ static int l_mat_N__BIFUNC_ (lua_State* L)
 //::
 /*:: Matrix unary functions
 local res = ""
-local funcs = {"unm", "transpose"}
+local funcs = {"unm", "transpose", "inv"}
 for _, f in ipairs (funcs) do
     res = res .. source:gsub ("_UNFUNC_", f)
 end
@@ -235,6 +241,7 @@ return res
 static int l_mat_N__UNFUNC_ (lua_State* L)
 {
     mat_N_ a = mat_N__l2c (L, 1);
+
     mat_N_ c = mat_N__UNFUNC_ (a);
     mat_N__c2l (L, c);
     return 1;
@@ -253,6 +260,7 @@ static int l_mat_N__SCALARFUNC_ (lua_State* L)
 {
     mat_N_ a = mat_N__l2c (L, 1);
     float b = lua_tonumber (L, 2);
+
     mat_N_ c = mat_N__SCALARFUNC_ (a, b);
     mat_N__c2l (L, c);
     return 1;
@@ -271,6 +279,7 @@ static int l_mat_N_get_ELEMENT_ (lua_State* L)
 {
     mat_N_ a = mat_N__l2c (L, 1);
     int i = lua_tointeger (L, 2);
+
     vec_N_ c = mat_N_get_ELEMENT_ (a, i);
     vec_N__c2l (L, c);
     return 1;
@@ -281,6 +290,7 @@ static int l_mat_N_set_ELEMENT_ (lua_State* L)
     mat_N_ a = mat_N__l2c (L, 1);
     int i = lua_tointeger (L, 2);
     vec_N_ v = vec_N__l2c (L, 3);
+
     mat_N_ c = mat_N_set_ELEMENT_ (a, i, v);
     mat_N__c2l (L, c);
     return 1;
@@ -291,22 +301,22 @@ static int l_mat_N_vecmul (lua_State* L)
 {
     mat_N_ a = mat_N__l2c (L, 1);
     vec_N_ b = vec_N__l2c (L, 2);
+
     vec_N_ c = mat_N_vecmul (a, b);
     vec_N__c2l (L, c);
     return 1;
 }
 
-//::
-// - Vector Arrays - //
+static int l_mat_N_det (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
 
-//size_t lua_objlen (lua_State* L, int index);
-/*:: Vector Array Sizes
-local res = ""
-for i = 2, 4 do
-    res = res .. source:gsub ("_N_", tostring (i))
-end
-return res
-::*/
+    float b = mat_N_det (a);
+    lua_pushnumber (L, b);
+    return 1;
+}
+
+// - Vector _N_ Array - //
 //:{
 typedef struct
 {   size_t count;
@@ -322,9 +332,6 @@ static int l_vec_N_array_pack (lua_State* L)
     lua_newtable (L);
 
     vec_N_array* array = lua_newuserdata (L, VEC_N_ARRAY_SIZE(count));
-    //┎1─────┬2─────┬3─────╖
-    //┃ arg1 │ ret1 │ usrd ║
-    //┖────-3┴────-2┴────-1╜
     array->count = count;
 
     for (size_t i = 0; i < count; ++i)
@@ -366,6 +373,7 @@ static int l_vec_N_array_length (lua_State* L)
 {
     lua_getfield (L, 1, "data");
     vec_N_array* array = lua_touserdata (L, -1);
+
     lua_pushinteger (L, array->count);
     return 1;
 }
@@ -400,7 +408,6 @@ static int l_mat_N_vecarraymul (lua_State* L)
     {
         array->verts[i] = mat_N_vecmul (mat, array->verts[i]);
     }
-
     lua_pop (L, 1);
 
     return 1;
@@ -408,24 +415,153 @@ static int l_mat_N_vecarraymul (lua_State* L)
 
 //::
 // -*- //
-/*:: Sizes
+//:{
+#define vec2_l2c vec_N__l2c
+#define vec2_c2l vec_N__c2l
+#define mat2_l2c mat_N__l2c
+#define mat2_c2l mat_N__c2l
+//:}
+static int l_vec2perp (lua_State* L)
+{
+    vec2 a = vec2_l2c (L, 1);
+
+    vec2 b = vec2perp (a);
+    vec2_c2l (L, b);
+    return 1;
+}
+
+static int l_vec2cramers (lua_State* L)
+{
+    mat2 A = mat2_l2c (L, 1);
+    vec2 b = vec2_l2c (L, 2);
+
+    vec2 c = vec2cramers (A, b);
+    vec2_c2l (L, c);
+    return 1;
+}
+
+static int l_vec3cross (lua_State* L)
+{
+    vec3 a = vec3_l2c (L, 1);
+    vec3 b = vec3_l2c (L, 2);
+
+    vec3 c = vec3cross (a, b);
+    vec3_c2l (L, c);
+    return 1;
+}
+/*:: Semicommon Sizes
 local res = ""
 for i = 2, 3 do
     res = res .. source:gsub ("_N_", tostring (i))
                        :gsub ("_M_", tostring (i + 1))
 end
 return res
-::*/
-//:{
+::*///:{
+#define vec_N_raise vec2raise
 #define vec_M_ vec3
 #define VEC_M_ARRAY_SIZE(n) (sizeof (size_t) + n*sizeof (vec_M_))
 #define vec_N_homogeneous vec2homogeneous
 #define vec_M_drop vec3drop
+#define mat_M_ mat3
+#define mat_M_drop mat3drop
+#define mat_N_homogeneous mat2homogeneous
+#define mat_M_translation mat3translation
+#define mat_M_scale mat3scale
+#define mat_M_scale_uniform mat3scale_uniform
+
+vec_M_ vec_M__l2c (lua_State* L, int i);
+vec_M_ vec_M__c2l (lua_State* L, vec_M_ v);
+mat_M_ mat_M__l2c (lua_State* L, int i);
+mat_M_ mat_M__c2l (lua_State* L, mat_M_ v);
+
 typedef struct
 {   size_t count;
     vec_M_ verts[];
 }   vec_M_array;
 //:}
+// - Vec _N_/_M_ Semicommon - //
+
+static int l_vec_N_raise (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+    int i = lua_tointeger (L, 2);
+    float b = lua_tonumber (L, 3);
+
+    vec_M_ c = vec_N_raise (a, i, b);
+    vec_M__c2l (L, c);
+    return 1;
+}
+
+static int l_vec_N_homogeneous (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+
+    vec_M_ c = vec_N_homogeneous (a);
+    vec_M__c2l (L, c);
+    return 1;
+}
+
+static int l_vec_M_drop (lua_State* L)
+{
+    vec_M_ a = vec_M__l2c (L, 1);
+    int i = lua_tointeger (L, 2);
+
+    vec_N_ b = vec_M_drop (a, i);
+    vec_N__c2l (L, b);
+    return 1;
+}
+
+// - Mat _N_/_M_ Semicommon - //
+
+static int l_mat_N_homogeneous (lua_State* L)
+{
+    mat_N_ a = mat_N__l2c (L, 1);
+
+    mat_M_ b = mat_N_homogeneous (a);
+    mat_M__c2l (L, b);
+    return 1;
+}
+
+static int l_mat_M_drop (lua_State* L)
+{
+    mat_M_ a = mat_M__l2c (L, 1);
+    int r = lua_tointeger (L, 2);
+    int c = lua_tointeger (L, 3);
+
+    mat_N_ b = mat_M_drop (a, r, c);
+    mat_N__c2l (L, b);
+    return 1;
+}
+
+static int l_mat_M_translation (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+
+    mat_M_ b = mat_M_translation (a);
+    mat_M__c2l (L, b);
+    return 1;
+}
+
+static int l_mat_M_scale (lua_State* L)
+{
+    vec_N_ a = vec_N__l2c (L, 1);
+
+    mat_M_ b = mat_M_scale (a);
+    mat_M__c2l (L, b);
+    return 1;
+}
+
+static int l_mat_M_scale_uniform (lua_State* L)
+{
+    float a = lua_tonumber (L, 1);
+
+    mat_M_ b = mat_M_scale_uniform (a);
+    mat_M__c2l (L, b);
+    return 1;
+}
+
+// - Vec _N_/_M_ Array Semicommon - //
+
 static int l_vec_N_array_homogeneous (lua_State* L)
 {
     lua_getfield (L, 1, "data");
@@ -434,6 +570,7 @@ static int l_vec_N_array_homogeneous (lua_State* L)
     lua_createtable (L, source->count, 0);
 
     vec_M_array* result = lua_newuserdata (L, VEC_M_ARRAY_SIZE(source->count));
+    // argt argd rest resd
     result->count = source->count;
 
     for (size_t i = 0; i < source->count; ++i)
@@ -441,7 +578,7 @@ static int l_vec_N_array_homogeneous (lua_State* L)
         result->verts[i] = vec_N_homogeneous (source->verts[i]);
     }
 
-    lua_setfield (L, 2, "data");
+    lua_setfield (L, 3, "data");
 
     lua_getglobal (L, "Vec_M_Array");
     lua_getfield (L, 4, "meta");
@@ -466,7 +603,7 @@ static int l_vec_M_array_droplast (lua_State* L)
         result->verts[i] = vec_M_drop (source->verts[i], _N_);
     }
 
-    lua_setfield (L, 2, "data");
+    lua_setfield (L, 3, "data");
 
     lua_getglobal (L, "Vec_M_Array");
     lua_getfield (L, 4, "meta");
@@ -477,55 +614,30 @@ static int l_vec_M_array_droplast (lua_State* L)
 }
 //::
 
-// - Vec Semicommon - //
-
-//:{
-#define vec_N_raise vec2raise
-vec_M_ vec_M__l2c (lua_State* L, int i);
-vec_M_ vec_M__c2l (lua_State* L, vec_M_ v);
-//:}
-/*:: Vector semicommon
-local res = ""
-for i = 2, 3 do
-    res = res .. source:gsub ("_N_", tostring (i))
-                       :gsub ("_M_", tostring (i + 1))
-end
-return res
-::*/
-static int l_vec_N_raise (lua_State* L)
+static int l_mat3rotation (lua_State* L)
 {
-    vec_N_ a = vec_N__l2c (L, 1);
+    float a = lua_tonumber (L, 1);
+
+    mat3 b = mat3rotation (a);
+    mat3_c2l (L, b);
+    return 1;
+}
+
+static int l_mat4rotation (lua_State* L)
+{
+    float a = lua_tonumber (L, 1);
     int i = lua_tointeger (L, 2);
-    float b = lua_tonumber (L, 3);
-    vec_M_ c = vec_N_raise (a, i, b);
-    vec_M__c2l (L, c);
+
+    mat4 b = mat4rotation (a, i);
+    mat4_c2l (L, b);
     return 1;
 }
-
-static int l_vec_N_homogeneous (lua_State* L)
-{
-    vec_N_ a = vec_N__l2c (L, 1);
-    vec_M_ c = vec_N_homogeneous (a);
-    vec_M__c2l (L, c);
-    return 1;
-}
-
-static int l_vec_M_drop (lua_State* L)
-{
-    vec_M_ a = vec_M__l2c (L, 1);
-    int i = lua_tointeger (L, 2);
-    vec_N_ b = vec_M_drop (a, i);
-    vec_N__c2l (L, b);
-    return 1;
-}
-
-//::
 
 // -*- //
 
 void initLuaVec (void)
 {
-/*::
+/*:: Register common
 local res = ""
 for i = 2, 4 do
     res = res .. source:gsub ("_N_", tostring (i))
@@ -536,7 +648,7 @@ return res
 
     lua_newtable (luaState);
 
-/*:: Common vector functions
+/*:: Register common vector functions
 local res = ""
 local funcs = {"add", "sub", "mul", "div", "unm", "sum", "dot", "mag2", "mag",
                "scalaradd", "scalarsub", "scalarmul", "scalardiv",
@@ -556,12 +668,12 @@ return res
 
     lua_newtable (luaState);
 
-/*:: Common matrix functions
+/*:: Register common matrix functions
 local res = ""
 local funcs = {"add", "sub", "compmul", "compdiv", "unm", "mul", "multranspose",
                "scalaradd", "scalarsub", "scalarmul", "scalardiv",
                "vecmul", "getrow", "getcol", "setrow", "setcol", "transpose",
-               "vecarraymul"}
+               "vecarraymul", "inv", "det"}
 for _, f in ipairs (funcs) do
     res = res .. source:gsub ("_FUNCNAME_", f)
 end
@@ -579,7 +691,7 @@ return res
 //:{
 #define l_vec_N_array__FUNCNAME_ l_vec_N_array_pack
 //:}
-/*:: Vector array functions
+/*:: Register vector array functions
 local res = ""
 local funcs = {"pack", "unpack", "length", "geti", "seti"}
 for _, f in ipairs (funcs) do
@@ -594,11 +706,31 @@ return res
     lua_setglobal (luaState, "Vec_N_Array");
 
 //::
+    lua_getglobal (luaState, "Vec2");
+
+        lua_pushcfunction (luaState, l_vec2perp);
+        lua_setfield (luaState, -2, "perp");
+
+        lua_pushcfunction (luaState, l_vec2cramers);
+        lua_setfield (luaState, -2, "cramers");
+
+    lua_setglobal (luaState, "Vec2");
+
+    lua_getglobal (luaState, "Vec3");
+
+        lua_pushcfunction (luaState, l_vec3cross);
+        lua_setfield (luaState, -2, "cross");
+
+    lua_setglobal (luaState, "Vec3");
+
     // - Vector 2 Semicommon - //
 
     lua_getglobal (luaState, "Vec2");
 
-/*:: Vector semicommon
+        lua_pushcfunction (luaState, l_vec2cramers);
+        lua_setfield (luaState, -2, "cramers");
+
+/*:: Register vector semicommon
 local res = ""
 for i = 2, 3 do
     res = res .. source:gsub ("_N_", tostring (i))
@@ -623,6 +755,69 @@ return res
 
 //::
     lua_setglobal (luaState, "Vec4");
+
+    // - Matrix 2 Semicommon - //
+//:{
+#define l_mat_M__FUNC_ l_mat_M_drop
+//:}
+    lua_getglobal (luaState, "Mat2");
+
+/*:: Register matrix array semicommon
+local res = ""
+for i = 2, 3 do
+    res = res .. source:gsub ("_N_", tostring (i))
+                       :gsub ("_M_", tostring (i + 1))
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_mat_N_homogeneous);
+        lua_setfield (luaState, -2, "homogeneous");
+
+    lua_setglobal (luaState, "Mat_N_");
+
+    lua_getglobal (luaState, "Mat_M_");
+
+/*::
+local res = ""
+local funcs = {"drop", "translation", "rotation", "scale", "scale_uniform"}
+for _, f in ipairs (funcs) do
+    res = res .. source:gsub ("_FUNC_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_mat_M__FUNC_);
+        lua_setfield (luaState, -2, "_FUNC_");
+
+//::
+//::
+    lua_setglobal (luaState, "Mat4");
+
+    // - Vector 2 Array Semicommon - //
+
+    lua_getglobal (luaState, "Vec2Array");
+
+/*:: Register vector array semicommon
+local res = ""
+for i = 2, 3 do
+    res = res .. source:gsub ("_N_", tostring (i))
+                       :gsub ("_M_", tostring (i + 1))
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_vec_N_array_homogeneous);
+        lua_setfield (luaState, -2, "homogeneous");
+
+    lua_setglobal (luaState, "Vec_N_Array");
+
+    // - Vector _M_ Array Semicommon - //
+
+    lua_getglobal (luaState, "Vec_M_Array");
+
+        lua_pushcfunction (luaState, l_vec_M_array_droplast);
+        lua_setfield (luaState, -2, "droplast");
+
+//::
+    lua_setglobal (luaState, "Vec4Array");
 
     // -*- //
 

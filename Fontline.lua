@@ -5,7 +5,7 @@ print (v, tostring (v))
 v = 1/(u + v)
 print (v, tostring (v))
 
-local A = Mat2 {{1,0},{0,-1}}
+local A = Mat3.translation (Vec2 (1,1)) * Mat3.rotation (1)
 print (A*v)
 
 points = Vec2Array

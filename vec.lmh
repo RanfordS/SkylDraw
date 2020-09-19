@@ -107,6 +107,10 @@ extern mat_N_ mat_N_setrow (mat_N_ a, int r, vec_N_ v);
 extern mat_N_ mat_N_setcol (mat_N_ a, int c, vec_N_ v);
 //! Transposes a _N_x_N_ matrix.
 extern mat_N_ mat_N_transpose (mat_N_ a);
+//! Determinant of a _N_x_N_ matrix.
+extern float mat_N_det (mat_N_ a);
+//! Inverse of a _N_x_N_ matrix.
+extern mat_N_ mat_N_inv (mat_N_ a);
 //! Prints a _N_x_N_ matrix using the specified format.
 extern void mat_N_disp (mat_N_ a, const char* form);
 
@@ -209,14 +213,6 @@ extern mat_N_ mat_N_translation (vec_M_ a);
 extern mat_N_ mat_N_scale (vec_M_ a);
 //! Uniform _N_x_N_ homogeneous scale matrix.
 extern mat_N_ mat_N_scale_uniform (float a);
-//! Determinant of a _N_x_N_ matrix.
-extern float mat_N_det (mat_N_ a);
-//! Cofactor matrix of a _N_x_N_ matrix.
-extern mat_N_ mat_N_cofact (mat_N_ a);
-//! Adjugate of a _N_x_N_ matrix.
-extern mat_N_ mat_N_adj (mat_N_ a);
-//! Inverse of a _N_x_N_ matrix.
-extern mat_N_ mat_N_inv (mat_N_ a);
 
 //:: End of Semi-Common Macro
 
