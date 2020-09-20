@@ -12,7 +12,7 @@ void rua_setclass (lua_State* L, const char* name)
 
 // - Circle - //
 
-static int l_circleNew (lua_State* L)
+static int l_circle_new (lua_State* L)
 {
     lua_newtable (L);
     Circle* circle = lua_newuserdata (L, sizeof (Circle));
@@ -25,7 +25,7 @@ static int l_circleNew (lua_State* L)
     return 1;
 }
 
-static int l_circle3Point (lua_State* L)
+static int l_circle_3point (lua_State* L)
 {
     lua_newtable (L);
     Circle* circle = lua_newuserdata (L, sizeof (Circle));
@@ -40,7 +40,7 @@ static int l_circle3Point (lua_State* L)
     return 1;
 }
 
-static int l_circlePointNormalPoint (lua_State* L)
+static int l_circle_pointNormalPoint (lua_State* L)
 {
     lua_newtable (L);
     Circle* circle = lua_newuserdata (L, sizeof (Circle));
@@ -93,7 +93,7 @@ static int l_circle_set_radius (lua_State* L)
 
 // - Arc - //
 
-static int l_arcNew (lua_State* L)
+static int l_arc_new (lua_State* L)
 {
     lua_newtable (L);
     Arc* arc = lua_newuserdata (L, sizeof (Arc));
@@ -108,7 +108,7 @@ static int l_arcNew (lua_State* L)
     return 1;
 }
 
-static int l_arc3Point (lua_State* L)
+static int l_arc_3point (lua_State* L)
 {
     lua_newtable (L);
     Arc* arc = lua_newuserdata (L, sizeof (Arc));
@@ -123,7 +123,7 @@ static int l_arc3Point (lua_State* L)
     return 1;
 }
 
-static int l_arcPointNormalPoint (lua_State* L)
+static int l_arc_pointNormalPoint (lua_State* L)
 {
     lua_newtable (L);
     Arc* arc = lua_newuserdata (L, sizeof (Arc));
@@ -138,7 +138,7 @@ static int l_arcPointNormalPoint (lua_State* L)
     return 1;
 }
 
-static int l_arcFlip (lua_State* L)
+static int l_arc_flip (lua_State* L)
 {
     lua_getfield (L, 1, "data");
     Arc* arc = lua_touserdata (L, -1);
@@ -147,7 +147,7 @@ static int l_arcFlip (lua_State* L)
     return 0;
 }
 
-static int l_arcStartPos (lua_State* L)
+static int l_arc_startPos (lua_State* L)
 {
     lua_getfield (L, 1, "data");
     Arc* arc = lua_touserdata (L, -1);
@@ -156,7 +156,7 @@ static int l_arcStartPos (lua_State* L)
     return 1;
 }
 
-static int l_arcEndPos (lua_State* L)
+static int l_arc_endPos (lua_State* L)
 {
     lua_getfield (L, 1, "data");
     Arc* arc = lua_touserdata (L, -1);
@@ -184,10 +184,10 @@ static int l_arc_set_center (lua_State* L)
     arc->center = vec2_l2c (L, 2);
     return 0;
 }
-/*::
+/*:: Arc members
 local res = ""
 for _, m in ipairs {"radius", "angleStart", "angleRange"} do
-    res = res .. res:gsub ("_MEMBER_", m)
+    res = res .. source:gsub ("_MEMBER_", m)
 end
 return res
 ::*/
@@ -212,3 +212,348 @@ static int l_arc_set__MEMBER_ (lua_State* L)
     return 0;
 }
 //::
+
+/*:: Specific Beziers
+local res = ""
+for i = 3, 4 do
+    res = res .. source:gsub ("_N_", tostring (i))
+end
+return res
+::*/
+// - Bezier _N_ - //
+//:{
+#define _N_ 3
+#define Bezier_N_ Bezier3
+#define bezier_N_Update bezier3Update
+#define bezier_N__POS_ bezier3Position
+#define bezier_POS_ bezierPosition
+//:}
+static int l_bezier_N__new (lua_State* L)
+{
+    lua_newtable (L);
+
+    Bezier_N_* curve = lua_newuserdata (L, sizeof (Bezier_N_));
+    lua_setfield (L, -2, "data");
+
+    for (int i = 0; i < _N_; ++i)
+        curve->points[i] = vec2_l2c (L, i+1);
+
+    lua_pushboolean (L, false);
+    lua_setfield (L, -2, "uptodate");
+
+    rua_setclass (L, "Bezier_N_");
+    return 1;
+}
+
+static int l_bezier_N__update (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier_N_* curve = lua_touserdata (L, -2);
+    lua_pop (L, 1);
+
+    bezier_N_Update (curve);
+
+    lua_pushboolean (L, true);
+    lua_setfield (L, 1, "uptodate");
+    return 0;
+}
+
+static int l_bezier_N__geti (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier_N_* curve = lua_touserdata (L, -2);
+    size_t i = lua_tointeger (L, 2) - 1;
+
+    vec2 v = curve->points[i];
+    vec2_c2l (L, v);
+    return 1;
+}
+
+static int l_bezier_N__seti (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier_N_* curve = lua_touserdata (L, -2);
+    size_t i = lua_tointeger (L, 2) - 1;
+    vec2 v = vec2_l2c (L, 3);
+
+    curve->points[i] = v;
+
+    lua_pushboolean (L, false);
+    lua_setfield (L, 1, "uptodate");
+    return 0;
+}
+
+/*:: Specific bezier positionals
+local res = ""
+for _, p in ipairs {"Position", "Velocity"} do
+    res = res .. source:gsub ("_POS_", p)
+                       :gsub ("_Pos_", string.lower (p))
+end
+return res
+::*/
+static int l_bezier_N___Pos_ (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier_N_* curve = lua_touserdata (L, -1);
+    float t = lua_tonumber (L, 2);
+
+    lua_getfield (L, 1, "uptodate");
+    if (lua_toboolean (L, -1) != true)
+        l_bezier_N__update (L);
+
+    vec2 v = bezier_N__POS_ (curve, t);
+    vec2_c2l (L, v);
+    return 1;
+}
+
+//::
+//::
+
+// - Generic Bezier - //
+
+static int l_bezier_new (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    vec2array* array = lua_touserdata (L, -1);
+    lua_pop (L, 1);
+
+    lua_newtable (L);
+    Bezier* curve = lua_newuserdata (L, sizeof (Bezier));
+    lua_setfield (L, -2, "data");
+
+    curve->pointCount = array->count;
+    size_t bytecount = array->count*sizeof (vec2);
+    curve->points = malloc (bytecount);
+    curve->coefficients = malloc (bytecount);
+    memcpy (curve->points, array->verts, bytecount);
+
+    lua_pushboolean (L, false);
+    lua_setfield (L, -2, "uptodate");
+
+    rua_setclass (L, "Bezier");
+    return 1;
+}
+
+static int l_bezier_update (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier* curve = lua_touserdata (L, -2);
+    lua_pop (L, 1);
+
+    bezierUpdate (curve);
+
+    lua_pushboolean (L, true);
+    lua_setfield (L, 1, "uptodate");
+    return 0;
+}
+
+static int l_bezier_geti (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier* curve = lua_touserdata (L, -2);
+    size_t i = lua_tointeger (L, 2) - 1;
+
+    vec2 v = curve->points[i];
+    vec2_c2l (L, v);
+    return 1;
+}
+
+static int l_bezier_seti (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier* curve = lua_touserdata (L, -2);
+    size_t i = lua_tointeger (L, 2) - 1;
+    vec2 v = vec2_l2c (L, 3);
+
+    curve->points[i] = v;
+
+    lua_pushboolean (L, false);
+    lua_setfield (L, 1, "uptodate");
+    return 0;
+}
+
+/*:: Generic bezier positionals
+local res = ""
+for _, p in ipairs {"Position", "Velocity"} do
+    res = res .. source:gsub ("_POS_", p)
+                       :gsub ("_Pos_", string.lower (p))
+end
+return res
+::*/
+static int l_bezier__Pos_ (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier* curve = lua_touserdata (L, -1);
+    float t = lua_tonumber (L, 2);
+
+    lua_getfield (L, 1, "uptodate");
+    if (lua_toboolean (L, -1) != true)
+        l_bezier_update (L);
+
+    vec2 v = bezier_POS_ (curve, t);
+    vec2_c2l (L, v);
+    return 1;
+}
+
+//::
+// - Fontline - //
+
+static int l_fontline_new (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    vec2array* array = lua_touserdata (L, -1);
+    lua_pop (L, 1);
+
+    lua_newtable (L);
+    Fontline* curve = lua_newuserdata (L, sizeof (Fontline));
+    lua_setfield (L, -2, "data");
+
+    curve->pointCount = array->count;
+    curve->points = malloc (array->count*sizeof (vec2));
+    curve->oncurve = malloc (array->count*sizeof (bool));
+    memcpy (curve->points, array->verts, array->count*sizeof (vec2));
+
+    for (size_t i = 0; i < array->count; ++i)
+    {
+        lua_geti (L, 2, i+1);
+        curve->oncurve[i] = lua_toboolean (L, -1);
+        lua_pop (L, 1);
+    }
+
+    lua_pushboolean (L, false);
+    lua_setfield (L, -2, "uptodate");
+
+    rua_setclass (L, "Bezier");
+    return 1;
+}
+
+static int l_fontline_getvi (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Fontline* curve = lua_touserdata (L, -1);
+    size_t i = lua_tointeger (L, 2) - 1;
+
+    vec2 v = curve->points[i];
+    vec2_c2l (L, v);
+    return 1;
+}
+
+static int l_fontline_setvi (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Fontline* curve = lua_touserdata (L, -1);
+    size_t i = lua_tointeger (L, 2) - 1;
+    vec2 v = vec2_l2c (L, 3);
+
+    curve->points[i] = v;
+    return 0;
+}
+
+static int l_fontline_getbi (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Fontline* curve = lua_touserdata (L, -1);
+    size_t i = lua_tointeger (L, 2) - 1;
+
+    bool b = curve->oncurve[i];
+    lua_pushboolean (L, b);
+    return 1;
+}
+
+static int l_fontline_setbi (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Fontline* curve = lua_touserdata (L, -1);
+    size_t i = lua_tointeger (L, 2) - 1;
+    bool b = lua_toboolean (L, 3);
+
+    curve->oncurve[i] = b;
+    return 0;
+}
+
+// - Register - //
+//:{
+#define l_circle__FUNC_ l_circle_new
+#define l_arc__FUNC_ l_arc_new
+#define l_bezier_N___FUNC_ l_bezier_new
+#define l_fontline__FUNC_ l_fontline_new
+//:}
+void initLuaShapes (void)
+{
+    lua_newtable (luaState);
+
+/*:: Register circle functions
+local res = ""
+for _, f in ipairs {"new", "3point", "pointNormalPoint", "get_center",
+                    "set_center", "get_radius", "set_radius"}
+do
+    res = res .. source:gsub ("_FUNC_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_circle__FUNC_);
+        lua_setfield (luaState, -2, "_FUNC_");
+
+//::
+    lua_setglobal (luaState, "Circle");
+
+    lua_newtable (luaState);
+
+/*:: Register arc functions
+local res = ""
+for _, f in ipairs {"new", "3point", "pointNormalPoint", "flip",
+                    "get_center", "set_center", "get_radius", "set_radius",
+                    "get_angleStart", "set_angleStart", "startPos", "endPos",
+                    "get_angleRange", "set_angleRange"}
+do
+    res = res .. source:gsub ("_FUNC_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_arc__FUNC_);
+        lua_setfield (luaState, -2, "_FUNC_");
+
+//::
+    lua_setglobal (luaState, "Arc");
+
+/*:: Register bezier types
+local res = ""
+for _, n in ipairs {"3","4",""} do
+    res = res .. source:gsub ("_N_", n)
+end
+return res
+::*/
+    lua_newtable (luaState);
+
+/*::
+local res = ""
+for _, f in ipairs {"new", "update", "geti", "seti", "position", "velocity"} do
+    res = res .. source:gsub ("_FUNC_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_bezier_N___FUNC_);
+        lua_setfield (luaState, -2, "_FUNC_");
+
+//::
+    lua_setglobal (luaState, "Bezier_N_");
+//::
+
+    lua_newtable (luaState);
+
+/*::
+local res = ""
+for _, f in ipairs {"new", "getvi", "setvi", "getbi", "setbi"} do
+    res = res .. source:gsub ("_FUNC_", f)
+end
+return res
+::*/
+        lua_pushcfunction (luaState, l_fontline__FUNC_);
+        lua_setfield (luaState, -2, "_FUNC_");
+
+//::
+    lua_setglobal (luaState, "Fontline");
+
+    luaL_dofile (luaState, "luashapesmeta.lua");
+}
+

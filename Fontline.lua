@@ -8,7 +8,7 @@ print (v, tostring (v))
 local A = Mat3.translation (Vec2 (1,1)) * Mat3.rotation (1)
 print (A*v)
 
-points = Vec2Array
+local points = Vec2Array
 { Vec2 (-1.0,-1.0)
 , Vec2 (-0.5,-1.0)
 , Vec2 ( 1.0,-1.0)
@@ -19,22 +19,7 @@ points = Vec2Array
 , Vec2 (-1.0, 0.0)
 }
 
-for i, point in ipairs (A*points) do
-    print (i, point)
-end
---[[
-points = VecArray
-{ {-1.0,-1.0}
-, {-0.5,-1.0}
-, { 1.0,-1.0}
-, { 1.0, 1.0}
-, { 0.5, 1.0}
-, {-0.5, 1.0}
-, {-1.0, 1.0}
-, {-1.0, 0.0}
-}
-
-onoffs =
+local onoffs =
 { true
 , true
 , false
@@ -45,5 +30,6 @@ onoffs =
 , true
 }
 
-Export (Fontline (points, onoffs))
---]]
+local fontline = Fontline (points, onoffs)
+
+Export (fontline)
