@@ -534,7 +534,7 @@ static int l_fontline_new (lua_State* L)
     lua_pushboolean (L, false);
     lua_setfield (L, -2, "uptodate");
 
-    rua_setclass (L, "Bezier");
+    rua_setclass (L, "Fontline");
     return 1;
 }
 
@@ -739,5 +739,7 @@ void initLuaShapes (void)
         lua_setfield (luaState, -2, "setbi");
 
     lua_setglobal (luaState, "Fontline");
+
+    luaL_dofile (luaState, "luashapesmeta.lua");
 }
 

@@ -30,6 +30,7 @@ int main(void)
         return 1;
     }
     initLuaVec ();
+    initLuaShapes ();
     initLineShader ();
 
     glfwSetKeyCallback (window, key_callback);

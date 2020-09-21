@@ -32,4 +32,5 @@ local onoffs =
 
 local fontline = Fontline (points, onoffs)
 
-Export (fontline)
+local drawing = Group {fontline}
+drawing:export ()

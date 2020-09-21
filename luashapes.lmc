@@ -1,6 +1,7 @@
 #include "core.h"
 #include "luavec.h"
 #include "shapes.h"
+#include "buffergen.h"
 
 void rua_setclass (lua_State* L, const char* name)
 {
@@ -423,7 +424,7 @@ static int l_fontline_new (lua_State* L)
     lua_pushboolean (L, false);
     lua_setfield (L, -2, "uptodate");
 
-    rua_setclass (L, "Bezier");
+    rua_setclass (L, "Fontline");
     return 1;
 }
 
@@ -469,6 +470,26 @@ static int l_fontline_setbi (lua_State* L)
 
     curve->oncurve[i] = b;
     return 0;
+}
+
+// - Buffergen - //
+
+static int l_deleteBuffer (lua_State* L)
+{
+    lua_getfield (L, 1, "buffer");
+    BufferInfo* buffer = lua_touserdata (L, -1);
+    deleteBuffer (buffer);
+    return 0;
+}
+
+static int l_createBezierBuffer (lua_State* L)
+{
+    lua_getfield (L, 1, "data");
+    Bezier* curve = lua_touserdata (L, -1);
+
+    BufferInfo* buffer = lua_newuserdata (L, sizeof (BufferInfo));
+    buffer->vertCount = lua_tointeger (L, 2);
+    createBezierBuffer (curve, buffer);
 }
 
 // - Register - //

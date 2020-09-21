@@ -68,3 +68,9 @@ typedef struct
     vec2* points;
     bool* oncurve;
 }   Fontline;
+
+// Lua
+
+extern void initLuaShapes (void);
+
+// EOF
