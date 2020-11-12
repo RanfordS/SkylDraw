@@ -7,7 +7,8 @@ function Group.new (name)
     {   name = name
     ,   children = {}
     ,   elements = {}
-    ,   marks = {}
+    ,   posmarks = {}
+    ,   vecmarks = {}
     ,   parameters = {}
     ,   options =
         {   visable = false
@@ -40,17 +41,31 @@ function Group.close (name)
     current = table.remove (stack)
 end
 
-function Group.mark (name, point)
+function Group.mark (name, point, vector)
     assert (type (name) == "string", "Mark name is not a string")
     assert (mtype (point) == "vec", "Point is not vector")
+    if vector then
+        assert (mtype (point) == "vec", "Vector is not vector")
+    end
 
-    current.marks[name] = point
+    current.posmarks[name] = point
+    current.vecmarks[name] = vector
 end
 
 function Group.add (...)
     for _, object in ipairs {...} do
         table.insert (current.elements, object)
     end
+end
+
+function Group.parameter (name, lower, default, upper)
+    lower = lower or -math.huge
+    upper = upper or  math.huge
+    assert (type (lower)   == "number", "Lower is not a number")
+    assert (type (default) == "number", "Default is not a number")
+    assert (type (upper)   == "number", "Upper is not a number")
+
+    table.insert (current.parameters, {lower = lower, default = default, upper = upper})
 end
 
 local Instance = {}
@@ -62,8 +77,12 @@ function Instance.new (template)
     local new =
     {   template = template
     ,   parameters = {}
-    ,   offset = Vec (0,0)
+    ,   transform = Transform.identity ()
     }
+
+    for k,v in pairs (template.parameters) do
+        new.parameters[k] = Parameter (v.lower, v.default, v.upper)
+    end
 
     return setmetatable (new,  Instance.metatable)
 end
@@ -74,10 +93,11 @@ function Group.instance (path)
     local template = root
     for name in path:gmatch ("[^%.]+") do
         template = template[name]
-        assert (selection, "Group instance could not find the requested group")
+        assert (template, "Group instance could not find the requested group")
     end
-    return Instance.new (selection)
+    return Instance.new (template)
 end
+
 
 
 return Group
