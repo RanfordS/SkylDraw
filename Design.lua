@@ -11,7 +11,8 @@ do  Group.open "FontCircle"
         inner.add (Vec.polar (radius/2,-2*math.pi*i/8), false)
     end
     Group.add (inner, outer)
-    Group.mark ("north", outer:getpos (0), outer:gettangent (0))
+    Group.markpos ("north", outer:getpos (0))
+    Group.markvec ("north", outer:gettangent (0))
 end Group.close "FontCirle" -- name not required, used to verify
 
 do  Group.open "Drawing"
