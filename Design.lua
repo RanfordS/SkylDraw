@@ -3,7 +3,7 @@
 do  Group.open "FontCircle"
     Group.options {color = {1.0, 0.5, 0.2}}
 
-    local radius = Group.parameter ("radius", 0.1, 1, math.huge)
+    local radius = Group.parameter ("radius", 0.1, 1, false)
     local inner = Fontline ()
     local outer = Fontline ()
     for i = 1, 8 do
@@ -24,9 +24,8 @@ do  Group.open "Drawing"
     local tang_dir = fcircle1:getvec ("north")
     local tline = Line (tang_center - 10*tang_dir, tang_center + 10*tang_dir)
 
-    local fcircle2 = Group.instance "FontCircle"
+    local fcircle2 = Group.instance ("FontCircle", {radius = 2.5})
     fcircle2:setpos (Vec (5,3))
-    fcircle2:parameter ("radius", 2.5)
 
     Group.add (fcircle1, fcircle2, rline, tline)
 end Group.close "Drawing"

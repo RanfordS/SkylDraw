@@ -75,6 +75,7 @@ end
 -- creates a new group parameter with the given bounds
 -- give false or nil for unbounded
 function Group.parameter (name, lower, default, upper)
+    assert (type (name) == "name", "Name is not string")
     lower = lower or -math.huge
     upper = upper or  math.huge
     assert (type (lower)   == "number", "Lower is not a number")
@@ -82,7 +83,12 @@ function Group.parameter (name, lower, default, upper)
     assert (type (upper)   == "number", "Upper is not a number")
 
     --default = math.max (lower, math.min (default, upper))
-    table.insert (current.parameters, {lower = lower, default = default, upper = upper})
+    table.insert (current.parameters,
+    {   lower = lower
+    ,   default = default
+    ,   upper = upper
+    })
+    return Parameter.new (default)
 end
 
 local Instance = {}
@@ -125,16 +131,38 @@ function Instance:getvec (name)
 end
 
 function Instance:setpos (name, pos)
-    assert (self.template.vecmarks[name],
-        "Instance does not have marker with that name")
-    assert (mtype (pos) == "vector")
+    assert (self.template.posmarks[name],
+        "Instance does not have a position marker with that name")
+    assert (mtype (pos) == "vector", "Pos is not a vector")
 
     local mpos = Transform.pos (self.transform, self.template.posmarks[name])
-    self.tranform = Transform.translate (pos - mpos) * self.transform
+    self.transform = Transform.translate (pos - mpos) * self.transform
     return self
 end
 
-function Instance:setvec (name, vec)
+function Instance:setdualpos (n0, p0, n1, p1)
+    assert (self.template.posmarks[n0], "Instance does not have a marker of n0")
+    assert (mtype (p0) == "vector", "P0 is not a vector")
+    assert (self.template.posmarks[n1], "Instance does not have a marker of n1")
+    assert (mtype (p1) == "vector", "P1 is not a vector")
+    assert (n0 ~= n1, "Markers n0 and n1 are the same")
+
+    local m0 = self.template.posmarks[n0]
+    local m1 = self.template.posmarks[n1]
+    local pd, pt = Vec.topolar (p1 - p0)
+    local md, mt = Vec.topolar (m1 - m0)
+    local scale = pd/md
+    local angle = pt - mt
+
+    local T = Transform.translate
+    local S = Transform.scaleuniform
+    local R = Transform.rotate
+    self.transform = T(p0)*S(scale)*R(angle)*T(-m0)
+    return self
+end
+
+function Instance:parameter (name, value)
+    assert (self.parameters[name], "Group does not have a parameter of that name")
 end
 
 -- creates an instance of the group at the given path

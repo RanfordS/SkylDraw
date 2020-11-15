@@ -103,6 +103,16 @@ int l_transform_scale (lua_State* L)
     return 1;
 }
 
+int l_transform_scale_uniform (lua_State* L)
+{
+    float s = lua_tonumber (L, 1);
+    mat3* M = ltransform_new (L);
+
+    M[0] = mat3scale_uniform (s);
+    M[1] = mat3scale_uniform (1/s);
+    return 1;
+}
+
 // 1 - transform
 // 2 - array of vectors
 // 3 - output array
@@ -128,6 +138,23 @@ int l_transform_mpos (lua_State* L)
     return 1;
 }
 
+int l_transform_pos (lua_State* L)
+{
+    mat3* M = lua_touserdata (L, 1);
+    vec2  u = lvec_lua2c (L, 2);
+    vec2  v = vec3drop (mat3vecmul (M[0], vec2raise (u, 3, 1.0f)), 3);
+    lvec_c2lua (L, v);
+    return 1;
+}
+
+int l_transform_vec (lua_State* L)
+{
+    mat3* M = lua_touserdata (L, 1);
+    vec2  u = lvec_lua2c (L, 2);
+    vec2  v = vec3drop (mat3vecmul (M[0], vec2raise (u, 3, 0.0f)), 3);
+    lvec_c2lua (L, v);
+    return 1;
+}
 
 
 
