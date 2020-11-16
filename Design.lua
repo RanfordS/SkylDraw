@@ -4,16 +4,16 @@ do  Group.open "FontCircle"
     Group.options {color = {1.0, 0.5, 0.2}}
 
     local radius = Group.parameter ("radius", 0.1, 1, false)
-    local inner = Fontline ()
-    local outer = Fontline ()
+    local inner = Parameter.call (Fontline)
+    local outer = Parameter.call (Fontline)
     for i = 1, 8 do
-        outer.add (Vec.polar (radius,   2*math.pi*i/8), false)
-        inner.add (Vec.polar (radius/2,-2*math.pi*i/8), false)
+        outer:add (Vec.polar (radius,   2*math.pi*i/8), false)
+        inner:add (Vec.polar (radius/2,-2*math.pi*i/8), false)
     end
     Group.add (inner, outer)
     Group.markpos ("north", outer:getpos (0))
     Group.markvec ("north", outer:gettangent (0))
-end Group.close "FontCirle" -- name not required, used to verify
+end Group.close "FontCircle" -- name not required, used to verify
 
 do  Group.open "Drawing"
     local fcircle1 = Group.instance "FontCircle"
@@ -25,7 +25,7 @@ do  Group.open "Drawing"
     local tline = Line (tang_center - 10*tang_dir, tang_center + 10*tang_dir)
 
     local fcircle2 = Group.instance ("FontCircle", {radius = 2.5})
-    fcircle2:setpos (Vec (5,3))
+    fcircle2:setpos ("origin", Vec (5,3))
 
     Group.add (fcircle1, fcircle2, rline, tline)
 end Group.close "Drawing"

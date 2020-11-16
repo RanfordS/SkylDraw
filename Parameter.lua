@@ -27,6 +27,17 @@ for k, f in pairs (def) do
     end
 end
 
+function Parameter.guard (f, ...)
+    for _, v in ipairs {...} do
+        if mtype (v) == "parameter" then
+            print ("Call guarded")
+            return Parameter.call (f, ...)
+        end
+    end
+    print ("Call now")
+    return f (...)
+end
+
 function Parameter.evaluate (p, defs)
     if type (p.PAR__f) == "string" then return defs[p.PAR__f] end
 
@@ -43,5 +54,7 @@ end
 function Parameter.new (name)
     return setmetatable ({PAR__f = name}, Parameter.metatable)
 end
+
+setmetatable (Parameter, {__call = Parameter.new})
 
 return Parameter

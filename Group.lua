@@ -7,8 +7,8 @@ function Group.new (name)
     {   name = name
     ,   children = {}
     ,   elements = {}
-    ,   posmarks = {}
-    ,   vecmarks = {}
+    ,   posmarks = {origin = Vec (0,0)}
+    ,   vecmarks = {direction = Vec (1,0)}
     ,   parameters = {}
     ,   options =
         {   visable = false
@@ -52,7 +52,9 @@ end
 -- adds the given position as a posmark to the current group
 function Group.markpos (name, pos)
     assert (type (name) == "string", "Mark name is not a string")
-    assert (mtype (pos) == "vec", "Position is not vector")
+    if mtype (pos) ~= "parameter" then
+        assert (mtype (pos) == "vec", "Position is not vector")
+    end
 
     current.posmarks[name] = pos
 end
@@ -60,7 +62,9 @@ end
 -- adds the given direction vector as a vecmark to the current group
 function Group.markvec (name, vec)
     assert (type (name) == "string", "Mark name is not a string")
-    assert (mtype (vec) == "vec", "Vector is not vector")
+    if mtype (vec) ~= "parameter" then
+        assert (mtype (vec) == "vec", "Vector is not vector")
+    end
 
     current.vecmarks[name] = vec
 end
@@ -75,7 +79,7 @@ end
 -- creates a new group parameter with the given bounds
 -- give false or nil for unbounded
 function Group.parameter (name, lower, default, upper)
-    assert (type (name) == "name", "Name is not string")
+    assert (type (name) == "string", "Name is not string")
     lower = lower or -math.huge
     upper = upper or  math.huge
     assert (type (lower)   == "number", "Lower is not a number")
@@ -131,9 +135,16 @@ function Instance:getvec (name)
 end
 
 function Instance:setpos (name, pos)
+    print ("Instance:setpos (".. mtype (name) ..": ".. tostring (name) ..", ".. mtype (pos) ..": ".. tostring (pos) ..")")
+    if pos == nil then
+        pos = name
+        name = "origin"
+        print ("Rephrased as    (".. mtype (name) ..": ".. tostring (name) ..", ".. mtype (pos) ..": ".. tostring (pos) ..")")
+    end
+
     assert (self.template.posmarks[name],
         "Instance does not have a position marker with that name")
-    assert (mtype (pos) == "vector", "Pos is not a vector")
+    assert (mtype (pos) == "vec", "Pos is not a vector")
 
     local mpos = Transform.pos (self.transform, self.template.posmarks[name])
     self.transform = Transform.translate (pos - mpos) * self.transform
@@ -142,9 +153,9 @@ end
 
 function Instance:setdualpos (n0, p0, n1, p1)
     assert (self.template.posmarks[n0], "Instance does not have a marker of n0")
-    assert (mtype (p0) == "vector", "P0 is not a vector")
+    assert (mtype (p0) == "vec", "P0 is not a vector")
     assert (self.template.posmarks[n1], "Instance does not have a marker of n1")
-    assert (mtype (p1) == "vector", "P1 is not a vector")
+    assert (mtype (p1) == "vec", "P1 is not a vector")
     assert (n0 ~= n1, "Markers n0 and n1 are the same")
 
     local m0 = self.template.posmarks[n0]
@@ -173,7 +184,7 @@ function Group.instance (path)
 
     local template = path:sub(1,1) == "." and current or root
     for name in path:gmatch ("[^%.]+") do
-        template = template[name]
+        template = template.children[name]
         assert (template, "Group instance could not find the requested group")
     end
     return Instance.new (template)

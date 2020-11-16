@@ -1,36 +1,22 @@
-local u = Vec2 (1, 1)
-print (u, tostring (u))
-local v = -Vec2 (2, 3)
-print (v, tostring (v))
-v = 1/(u + v)
-print (v, tostring (v))
+local Fontline = {}
+Fontline.metatable = {__index = Fontline, mtype = "fontline"}
 
-local A = Mat3.translation (Vec2 (1,1)) * Mat3.rotation (1)
-print (A*v)
+function Fontline.new ()
+    return setmetatable (
+    {   points = {}
+    ,   oncurve = {}
+    },  Fontline.metatable)
+end
 
-local points = Vec2Array
-{ Vec2 (-1.0,-1.0)
-, Vec2 (-0.5,-1.0)
-, Vec2 ( 1.0,-1.0)
-, Vec2 ( 1.0, 1.0)
-, Vec2 ( 0.5, 1.0)
-, Vec2 (-0.5, 1.0)
-, Vec2 (-1.0, 1.0)
-, Vec2 (-1.0, 0.0)
-}
+setmetatable (Fontline, {__call = Fontline.new})
 
-local onoffs =
-{ true
-, true
-, false
-, false
-, true
-, true
-, false
-, true
-}
+function Fontline:add (pos, on)
+    assert (mtype (pos) == "vector", "Pos in not vector")
+    assert (type (on) == "boolean", "On is not boolean")
 
-local fontline = Fontline (points, onoffs)
+    table.insert (self.points, pos)
+    table.insert (self.oncurve, on)
+    return self
+end
 
-local drawing = Group {fontline}
-drawing:export ()
+return Fontline
