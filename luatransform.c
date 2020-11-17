@@ -138,6 +138,27 @@ int l_transform_mpos (lua_State* L)
     return 1;
 }
 
+int l_transform_mvec (lua_State* L)
+{
+    lua_settop (L, 2);
+    mat3*  M = lua_touserdata (L, 1);
+    size_t n = lua_rawlen (L, 2);
+    lua_createtable (L, n, 0);
+
+    for (size_t i = 1; i <= n; ++i)
+    {
+        lua_rawgeti (L, 2, i);
+        vec2 v = lvec_lua2c (L, 4);
+        lua_pop (L, 1);
+
+        v = vec3drop (mat3vecmul (M[0], vec2raise (v, 2, 0)), 2);
+
+        lvec_c2lua (L, v);
+        lua_rawseti (L, 3, i);
+    }
+    return 1;
+}
+
 int l_transform_pos (lua_State* L)
 {
     mat3* M = lua_touserdata (L, 1);
@@ -158,6 +179,45 @@ int l_transform_vec (lua_State* L)
 
 
 
+void registerTransform (lua_State* L)
+{
+    lua_newtable (L); // Transform
+
+    lua_pushcfunction (L, l_transform_identity);
+    lua_setfield (L, -2, "identity");
+
+    lua_pushcfunction (L, l_transform_translate);
+    lua_setfield (L, -2, "translate");
+
+    lua_pushcfunction (L, l_transform_rotate);
+    lua_setfield (L, -2, "rotate");
+
+    lua_pushcfunction (L, l_transform_scale);
+    lua_setfield (L, -2, "scale");
+
+    lua_pushcfunction (L, l_transform_scale_uniform);
+    lua_setfield (L, -2, "scaleuniform");
+
+    lua_pushcfunction (L, l_transform_pos);
+    lua_setfield (L, -2, "pos");
+
+    lua_pushcfunction (L, l_transform_vec);
+    lua_setfield (L, -2, "vec");
+
+    lua_pushcfunction (L, l_transform_mpos);
+    lua_setfield (L, -2, "pos_array");
+
+    lua_pushcfunction (L, l_transform_mvec);
+    lua_setfield (L, -2, "vec_array");
+
+    lua_newtable (L); // metatable
+
+    lua_pushcfunction (L, l_transform_mul);
+    lua_setfield (L, -2, "__mul");
+
+    lua_setfield (L, -2, "metatable");
+    lua_setglobal (L, "Transform");
+}
 
 
 
