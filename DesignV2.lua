@@ -1,11 +1,11 @@
 
 
 
-Group.parametric ("FontCircle",
+Group.define ("FontCircle",
 {   radius = {lower = 0, default = 0.5, upper = 1}
 }
 ,   function (args)
-    local group = Group ()
+    local group = Group.new ()
 
     local inner = Fontline ()
     local outer = Fontline ()
@@ -23,7 +23,7 @@ Group.parametric ("FontCircle",
 end)
 
 Group.define ("Drawing",
-{}
+false
 ,   function (args)
     local drawing = Group.new ()
 
