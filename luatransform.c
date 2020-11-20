@@ -1,5 +1,4 @@
-#include "core.h"
-#include "vec.c"
+#include "luatransform.h"
 
 // abs index only
 vec2 lvec_lua2c (lua_State* L, int i)
