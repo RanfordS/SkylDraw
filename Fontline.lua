@@ -37,6 +37,28 @@ function Fontline:getpos (p)
     --TODO
 end
 
+function Fontline.join (a, b)
+    assert (mtype (a) == "fontline" and mtype (b) == "fontline",
+        "Fontlines may only join with other fontlines")
+
+    local n = #b.points
+    for i = 2, n do
+        Fontline.add (a, b.points[i], b.oncurve[i])
+    end
+    return a
+end
+
+function Fontline.bridge (a, b)
+    assert (mtype (a) == "fontline" and mtype (b) == "fontline",
+        "Fontlines may only bridge to other fontlines")
+
+    local n = #b.points
+    for i = 1, n do
+        Fontline.add (a, b.points[i], b.oncurve[i])
+    end
+    return a
+end
+
 -- add generate method using c
 
 return Fontline

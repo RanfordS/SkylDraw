@@ -1,6 +1,63 @@
 #include "core.h"
-//#include "buffergen.h"
 #include "luatransform.h"
+#include "shapes.h"
+
+typedef struct
+{   size_t vertCount;
+    vec2* verts;
+    bool closed;
+}   VertexInfo;
+
+void fontlineVertexInfo (VertexInfo* info, Fontline* line)
+{
+    size_t count = 0;
+    for (size_t c = 0, p = line->pointCount - 1; c < line->pointCount; p = c++)
+    {
+        if (line->oncurve[c])
+        {   if (line->oncurve[p])
+                ++count;
+        }
+        else
+            count += line->resolution;
+    }
+
+    info->vertCount = count;
+    info->verts = malloc (count*sizeof (vec2));
+
+    // fill data
+    size_t vindex = 0;
+    for (size_t c0 = 0; c0 < line->pointCount; ++c0)
+    {
+        size_t c1 = (c0 + 1) % count;
+
+        if (line->oncurve[c0] && line->oncurve[c1])
+        {
+            info->verts[vindex++] = line->points[c0];
+        }
+        else
+        if (line->oncurve[c1])
+        {
+            size_t c2 = (c0 + 2) % count;
+
+            Bezier3 curve = {};
+            curve.points[0] = line->points[c0];
+            curve.points[1] = line->points[c1];
+            curve.points[2] = line->points[c2];
+
+            if (line->oncurve[c0]) curve.points[0] =
+                vec2scalardiv (vec2add (curve.points[c0], curve.points[c1]), 2);
+            if (line->oncurve[c2]) curve.points[2] =
+                vec2scalardiv (vec2add (curve.points[c2], curve.points[c1]), 2);
+
+            bezier3Update (&curve);
+            for (size_t j = 0; j < line->resolution; ++j)
+            {
+                float t = j / (float) line->resolution;
+                info->verts[vindex++] = bezier3Position (&curve, t);
+            }
+        }
+    }
+}
 
 typedef struct
 {   size_t vertCount;
@@ -37,6 +94,48 @@ void createBuffer (BufferInfo* buffer, vec2* vdata, GLuint* idata)
     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+// takes the inputted vertex infos an writes the data into a single buffer info
+void createVertexBuffer (BufferInfo* buffer, size_t infoCount, VertexInfo* infos)
+{
+    // calculate buffer sizes
+    size_t vertCount = 0;
+    size_t indexCount = infoCount - 1;
+
+    for (size_t i = 0; i < infoCount; ++i)
+    {
+        vertCount  += infos[i].vertCount;
+        indexCount += infos[i].vertCount + infos[i].closed;
+    }
+
+    // allocate
+    vec2*   vdata = malloc (vertCount*sizeof (vec2));
+    GLuint* idata = malloc (indexCount*sizeof (GLuint));
+
+    size_t vindex = 0;
+    size_t iindex = 0;
+
+    for (size_t i = 0; i < infoCount; ++i)
+    {
+        if (i != 0) idata[iindex++] = ~((GLuint) 0);
+
+        memcpy (vdata + vindex, infos[i].verts, infos[i].vertCount*sizeof (vec2));
+
+        size_t sindex = vindex;
+        for (size_t j = 0; j < infos[i].vertCount; ++j)
+        {
+            idata[iindex++] = vindex++;
+        }
+        if (infos[i].closed)
+        {
+            idata[iindex++] = sindex;
+        }
+    }
+
+    buffer->vertCount = vertCount;
+    buffer->indexCount = indexCount;
+    createBuffer (buffer, vdata, idata);
+}
+
 // to be called with the table of tables at the top of the stack
 void lcreatebuffer (lua_State* L, BufferInfo* buffer)
 {
@@ -62,7 +161,7 @@ void lcreatebuffer (lua_State* L, BufferInfo* buffer)
     for (size_t i = 1; i <= numobjs; ++i)
     {
         // restart primitive
-        if (i != 1) idata[++ipos] = ~((GLuint)0);
+        if (i != 1) idata[ipos++] = ~((GLuint)0);
 
         lua_rawgeti (L, -1, i);
         size_t sublen = lua_rawlen (L, root + 1);

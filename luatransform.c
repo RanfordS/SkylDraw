@@ -1,8 +1,8 @@
 #include "luatransform.h"
 
-// abs index only
 vec2 lvec_lua2c (lua_State* L, int i)
 {
+    i = lua_absindex (L, i);
     vec2 a;
 
     lua_pushstring (L, "x"); lua_rawget (L, i); a.v[0] = lua_tonumber (L, -1);

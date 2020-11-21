@@ -65,8 +65,10 @@ extern vec2 bezierVelocity (Bezier* curve, float t);
 
 typedef struct
 {   size_t pointCount;
+    size_t resolution;
     vec2* points;
     bool* oncurve;
+    bool closed;
 }   Fontline;
 
 // Lua

@@ -5,14 +5,15 @@ Group.define ("FontCircle",
 {   radius = {lower = 0, default = 0.5, upper = 1}
 }
 ,   function (args)
+    local r = args.radius
     local group = Group.new ()
 
     local inner = Fontline ()
     local outer = Fontline ()
 
     for i = 1, 8 do
-        outer:add (Vec.polar (args.radius,   2*math.pi*i/8), false)
-        inner:add (Vec.polar (args.radius/2,-2*math.pi*i/8), false)
+        outer:add (Vec.polar (1,  2*math.pi*i/8), false)
+        inner:add (Vec.polar (r, -2*math.pi*i/8), false)
     end
 
     group:add (inner, outer)
@@ -37,6 +38,7 @@ false
 
     local fcircle2 = Group.instance ("FontCircle", {radius = 0.2})
     fcircle2:setpos ("north", Vec (5,3))
+    Group:color (1.0, 0.5, 0.2)
 
     drawing:add (fcircle1, fcircle2, rline, tline)
     return drawing
